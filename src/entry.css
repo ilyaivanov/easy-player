@@ -1,0 +1,93 @@
+body {
+  background-color: rgb(12, 12, 12);
+  color: white;
+  font-family: Segoe UI;
+  font-size: 14px;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  padding: 4px;
+  align-items: center;
+
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.item:nth-child(2n) {
+  background-color: #191919;
+}
+
+.square {
+  display: inline-block;
+  margin: 5px;
+
+  vertical-align: baseline;
+
+  width: 6.5px;
+  height: 7px;
+  background-color: grey;
+
+  cursor: pointer;
+}
+
+.square:hover {
+  background-color: white;
+  transform: scale(1.2);
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.chevron-container {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevron-container.open .chevron {
+  transform: rotateZ(180deg);
+}
+
+.chevron-container:hover {
+  background-color: #353535;
+  cursor: pointer;
+
+  .chevron {
+    fill: white;
+  }
+}
+
+.chevron-container:active {
+  background-color: #553555;
+}
+
+.chevron {
+  height: 10px;
+  width: 10px;
+  transform: rotateZ(90deg);
+  opacity: 0;
+  transition:
+    opacity 100ms ease-in-out,
+    transform 100ms ease-in-out;
+}
+
+.chevron {
+  fill: grey;
+}
+
+.item:hover .chevron {
+  opacity: 1;
+}
