@@ -35,7 +35,7 @@ body::-webkit-scrollbar-thumb:hover {
     background-color: greenyellow;
 }
 
-.item.selected .square.empty {
+.item.selected.empty .square {
     background-color: transparent;
     border-color: greenyellow;
 }
@@ -110,4 +110,8 @@ body::-webkit-scrollbar-thumb:hover {
 .item.empty .square {
     background-color: transparent;
     border: 1px solid grey;
+}
+
+.item-text {
+    outline: none;
 }

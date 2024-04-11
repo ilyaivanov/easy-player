@@ -3,6 +3,7 @@ type Props = {
     classMap?: { [key: string]: boolean };
     children?: (DocumentFragment | HTMLElement | string | undefined)[];
     onClick?: (this: HTMLElement, mouse: MouseEvent) => void;
+    onInput?: (this: HTMLElement, ev: Event) => void;
 
     afterCreation?: ((elem: HTMLElement) => void)[];
 };
@@ -41,6 +42,7 @@ function assignHtmlElementProps<T extends HTMLElement>(
     }
 
     if (props.onClick) elem.addEventListener("click", props.onClick);
+    if (props.onInput) elem.addEventListener("input", props.onInput);
 
     if (props.afterCreation) for (const fn of props.afterCreation) fn(elem);
 

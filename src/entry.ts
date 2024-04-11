@@ -22,6 +22,9 @@ const root: Item = node("Root", [
 let selected: Item = root.children[0];
 const views = new WeakMap<Item, HTMLElement>();
 
+type Mode = "Normal" | "Insert";
+let mode: Mode = "Normal";
+
 function selectItem(item: Item | undefined) {
     if (!item) return;
 
@@ -68,6 +71,19 @@ function updateItem(item: Item) {
 }
 
 document.addEventListener("keydown", (e) => {
+    if (mode == "Insert" && e.code == "Enter") {
+        mode = "Normal";
+        const elem = views.get(selected)?.childNodes[2] as HTMLElement;
+        elem.removeAttribute("contentEditable");
+        elem.blur();
+
+        return;
+    }
+
+    if (mode == "Insert") {
+        return;
+    }
+
     if (e.code == "KeyJ") selectItem(getItemBelow(selected));
     else if (e.code == "KeyK") selectItem(getItemAbove(selected));
     else if (e.code == "KeyH") {
@@ -78,6 +94,13 @@ document.addEventListener("keydown", (e) => {
         if (selected.isOpen && selected.children.length > 0)
             selectItem(selected.children[0]);
         else if (!selected.isOpen) openItem(selected);
+    } else if (e.code == "KeyI") {
+        mode = "Insert";
+        const elem = views.get(selected)?.childNodes[2] as HTMLElement;
+        elem.contentEditable = "true";
+        elem.focus();
+
+        e.preventDefault();
     }
 });
 
@@ -97,7 +120,12 @@ function renderItem(item: Item): HTMLElement {
                 onClick: onCloseClick,
             }),
             div({ className: "square" }),
-            item.title,
+            span({
+                className: "item-text",
+                children: [item.title],
+                onInput: (e) =>
+                    (item.title = (e.currentTarget as HTMLElement).innerText),
+            }),
         ],
     });
     views.set(item, itemElem);
