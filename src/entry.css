@@ -65,10 +65,10 @@ body::-webkit-scrollbar-thumb:hover {
 .chevron-container:hover {
     background-color: #353535;
     cursor: pointer;
+}
 
-    .chevron {
-        fill: white;
-    }
+.chevron-container:hover .chevron {
+    fill: white;
 }
 
 .chevron-container:active {
