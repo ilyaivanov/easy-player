@@ -1,6 +1,13 @@
 import { div, fragment, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
-import { Item, getItemAbove, getItemBelow, isRoot, node } from "./item";
+import {
+    Item,
+    getItemAbove,
+    getItemBelow,
+    getItemIndex,
+    isRoot,
+    node,
+} from "./item";
 
 import "./entry.css";
 
@@ -34,48 +41,61 @@ function selectItem(item: Item | undefined) {
 }
 
 function closeItem(item: Item) {
-    const itemElem = views.get(item);
     item.isOpen = false;
-    if (itemElem) {
-        itemElem.nextSibling?.remove();
-        updateItem(item);
-    }
+
+    const itemElem = views.get(item);
+    if (!itemElem) return;
+
+    itemElem.nextSibling?.remove();
+    updateItem(item);
 }
 
 function openItem(item: Item) {
     item.isOpen = true;
     const itemElem = views.get(item);
-    if (itemElem) {
-        insertAfter(
-            itemElem,
-            div({
-                className: "children-container",
-                children: item.children.map(renderItem),
-            })
-        );
-        updateItem(item);
-    }
+    if (!itemElem) return;
+
+    insertAfter(
+        itemElem,
+        div({
+            className: "children-container",
+            children: item.children.map(renderItem),
+        })
+    );
+    updateItem(item);
 }
 
 function updateItem(item: Item) {
     const itemElem = views.get(item);
-    if (itemElem) {
-        if (item.children.length == 0) itemElem.classList.add("empty");
-        else {
-            itemElem.classList.remove("empty");
+    if (!itemElem) return;
 
-            if (item.isOpen) itemElem.classList.add("open");
-            else itemElem.classList.remove("open");
-        }
+    if (item.children.length == 0) itemElem.classList.add("empty");
+    else {
+        itemElem.classList.remove("empty");
+
+        if (item.isOpen) itemElem.classList.add("open");
+        else itemElem.classList.remove("open");
     }
+}
+function startEditSelectedItem() {
+    mode = "Insert";
+    //TODO: this is also ugly
+    const elem = views.get(selected)?.childNodes[2] as HTMLElement;
+    elem.contentEditable = "true";
+    elem.focus();
+}
+
+function stopEditSelectedItem() {
+    mode = "Normal";
+    //TODO: this is also ugly
+    const elem = views.get(selected)?.childNodes[2] as HTMLElement;
+    elem.blur();
+    elem.removeAttribute("contentEditable");
 }
 
 document.addEventListener("keydown", (e) => {
-    if (mode == "Insert" && e.code == "Enter") {
-        mode = "Normal";
-        const elem = views.get(selected)?.childNodes[2] as HTMLElement;
-        elem.removeAttribute("contentEditable");
-        elem.blur();
+    if (mode == "Insert" && (e.code == "Enter" || e.code == "Escape")) {
+        stopEditSelectedItem();
 
         return;
     }
@@ -84,7 +104,33 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    if (e.code == "KeyJ") selectItem(getItemBelow(selected));
+    //TODO: insert and delete items
+    //TODO: move items around
+    //TODO: undo/redo
+    if (e.code == "KeyO") {
+        const item: Item = {
+            title: "",
+            children: [],
+            isOpen: false,
+            parent: undefined,
+            type: "node",
+        };
+        const index = getItemIndex(selected);
+
+        selected.parent?.children.splice(index + 1, 0, item);
+        item.parent = selected.parent;
+
+        if (selected.isOpen)
+            insertAfter(
+                views.get(selected)!.nextSibling as HTMLElement,
+                renderItem(item)
+            );
+        else insertAfter(views.get(selected)!, renderItem(item));
+
+        selectItem(item);
+        startEditSelectedItem();
+        e.preventDefault();
+    } else if (e.code == "KeyJ") selectItem(getItemBelow(selected));
     else if (e.code == "KeyK") selectItem(getItemAbove(selected));
     else if (e.code == "KeyH") {
         if (selected.isOpen) closeItem(selected);
@@ -95,10 +141,7 @@ document.addEventListener("keydown", (e) => {
             selectItem(selected.children[0]);
         else if (!selected.isOpen) openItem(selected);
     } else if (e.code == "KeyI") {
-        mode = "Insert";
-        const elem = views.get(selected)?.childNodes[2] as HTMLElement;
-        elem.contentEditable = "true";
-        elem.focus();
+        startEditSelectedItem();
 
         e.preventDefault();
     }
@@ -123,8 +166,7 @@ function renderItem(item: Item): HTMLElement {
             span({
                 className: "item-text",
                 children: [item.title],
-                onInput: (e) =>
-                    (item.title = (e.currentTarget as HTMLElement).innerText),
+                onInput: (e) => (item.title = e.currentTarget.innerText),
             }),
         ],
     });

@@ -114,4 +114,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .item-text {
     outline: none;
+
+    /* allow cursor to be visible when no text in present */
+    min-width: 3px;
 }

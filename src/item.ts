@@ -37,12 +37,12 @@ export function getItemAbove(item: Item): Item | undefined {
     }
 }
 
-function getItemIndex(item: Item) {
+export function getItemIndex(item: Item) {
     if (item.parent) return item.parent.children.indexOf(item);
     return -1;
 }
 
-function getChildAt(parent: Item, index: number) {
+export function getChildAt(parent: Item, index: number) {
     return parent.children[index];
 }
 
