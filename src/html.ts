@@ -1,19 +1,51 @@
 type Props = {
-  className?: string;
-  children?: (HTMLElement | string)[];
-  onClick?: (this: HTMLDivElement, mouse: MouseEvent) => void;
+    className?: string;
+    classMap?: { [key: string]: boolean };
+    children?: (DocumentFragment | HTMLElement | string | undefined)[];
+    onClick?: (this: HTMLElement, mouse: MouseEvent) => void;
+
+    afterCreation?: ((elem: HTMLElement) => void)[];
 };
 
-export const div = (props: Props): HTMLDivElement => {
-  const res = document.createElement("div");
-  if (props.className) res.className = props.className;
+export const div = (props: Props) =>
+    assignHtmlElementProps(document.createElement("div"), props);
 
-  if (props.children) {
-    for (const child of props.children) {
-      res.append(child);
+export const span = (props: Props) =>
+    assignHtmlElementProps(document.createElement("span"), props);
+
+export const fragment = (...children: HTMLElement[]) => {
+    const res = document.createDocumentFragment();
+
+    for (const child of children) res.appendChild(child);
+
+    //ugly typecast, but I'm adding this as children to nodes, which might be wrong
+    return res as unknown as HTMLElement;
+};
+
+function assignHtmlElementProps<T extends HTMLElement>(
+    elem: T,
+    props: Props
+): T {
+    if (props.className) elem.className = props.className;
+
+    if (props.classMap) {
+        for (const classKey in props.classMap) {
+            if (props.classMap[classKey]) elem.classList.add(classKey);
+        }
     }
-  }
 
-  if (props.onClick) res.addEventListener("click", props.onClick);
-  return res;
-};
+    if (props.children) {
+        for (const child of props.children) {
+            if (child) elem.append(child);
+        }
+    }
+
+    if (props.onClick) elem.addEventListener("click", props.onClick);
+
+    if (props.afterCreation) for (const fn of props.afterCreation) fn(elem);
+
+    return elem;
+}
+
+export const insertAfter = (elem: HTMLElement, elemToInsert: HTMLElement) =>
+    elem.insertAdjacentElement("afterend", elemToInsert);
