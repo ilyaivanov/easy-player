@@ -1,15 +1,29 @@
-import { div, fragment, insertAfter, span } from "./html";
-import { chevronIcon } from "./icons";
 import {
     Item,
+    createEmptyItem,
     getItemAbove,
     getItemBelow,
-    getItemIndex,
     isRoot,
     node,
-} from "./item";
+    removeItemFromTree,
+    getItemToSelectAfterRemoval,
+    insertItemAfter,
+    insertItemBefore,
+    insertItemAsFirstChild,
+} from "./tree";
 
 import "./entry.css";
+import {
+    closeItemDom,
+    insertItemToDom,
+    openItemDom,
+    removeItemFromDom,
+    renderApp,
+    startEdit,
+    stopEdit,
+    updateItem,
+    updateSelection,
+} from "./views";
 
 const root: Item = node("Root", [
     node("Music", [
@@ -27,7 +41,6 @@ const root: Item = node("Root", [
 ]);
 
 let selected: Item = root.children[0];
-const views = new WeakMap<Item, HTMLElement>();
 
 type Mode = "Normal" | "Insert";
 let mode: Mode = "Normal";
@@ -35,62 +48,35 @@ let mode: Mode = "Normal";
 function selectItem(item: Item | undefined) {
     if (!item) return;
 
-    views.get(selected)?.classList.remove("selected");
+    updateSelection(selected, item);
     selected = item;
-    views.get(selected)?.classList.add("selected");
 }
 
 function closeItem(item: Item) {
     item.isOpen = false;
 
-    const itemElem = views.get(item);
-    if (!itemElem) return;
-
-    itemElem.nextSibling?.remove();
-    updateItem(item);
+    closeItemDom(item);
 }
 
 function openItem(item: Item) {
     item.isOpen = true;
-    const itemElem = views.get(item);
-    if (!itemElem) return;
-
-    insertAfter(
-        itemElem,
-        div({
-            className: "children-container",
-            children: item.children.map(renderItem),
-        })
-    );
-    updateItem(item);
+    openItemDom(item);
 }
 
-function updateItem(item: Item) {
-    const itemElem = views.get(item);
-    if (!itemElem) return;
-
-    if (item.children.length == 0) itemElem.classList.add("empty");
-    else {
-        itemElem.classList.remove("empty");
-
-        if (item.isOpen) itemElem.classList.add("open");
-        else itemElem.classList.remove("open");
-    }
-}
 function startEditSelectedItem() {
     mode = "Insert";
-    //TODO: this is also ugly
-    const elem = views.get(selected)?.childNodes[2] as HTMLElement;
-    elem.contentEditable = "true";
-    elem.focus();
+    startEdit(selected);
 }
 
 function stopEditSelectedItem() {
     mode = "Normal";
-    //TODO: this is also ugly
-    const elem = views.get(selected)?.childNodes[2] as HTMLElement;
-    elem.blur();
-    elem.removeAttribute("contentEditable");
+    stopEdit(selected);
+}
+
+//TODO: this is a cyclical dependency from views.ts. Needs to remove cycles and extract this
+export function onOpenToggleClick(item: Item) {
+    if (item.isOpen) closeItem(item);
+    else openItem(item);
 }
 
 document.addEventListener("keydown", (e) => {
@@ -104,32 +90,34 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    //TODO: insert and delete items
     //TODO: move items around
     //TODO: undo/redo
+
     if (e.code == "KeyO") {
-        const item: Item = {
-            title: "",
-            children: [],
-            isOpen: false,
-            parent: undefined,
-            type: "node",
-        };
-        const index = getItemIndex(selected);
+        const item = createEmptyItem();
 
-        selected.parent?.children.splice(index + 1, 0, item);
-        item.parent = selected.parent;
+        if (e.shiftKey) insertItemBefore(selected, item);
+        if (e.ctrlKey) {
+            insertItemAsFirstChild(selected, item);
+            e.preventDefault();
+        } else insertItemAfter(selected, item);
 
-        if (selected.isOpen)
-            insertAfter(
-                views.get(selected)!.nextSibling as HTMLElement,
-                renderItem(item)
-            );
-        else insertAfter(views.get(selected)!, renderItem(item));
+        updateItem(selected);
+        insertItemToDom(item);
 
         selectItem(item);
         startEditSelectedItem();
         e.preventDefault();
+    } else if (e.code == "KeyD") {
+        const nextSelected = getItemToSelectAfterRemoval(selected);
+        removeItemFromTree(selected);
+
+        removeItemFromDom(selected);
+
+        //TODO: this is ugly, need to think
+        updateItem(selected.parent!);
+
+        selectItem(nextSelected);
     } else if (e.code == "KeyJ") selectItem(getItemBelow(selected));
     else if (e.code == "KeyK") selectItem(getItemAbove(selected));
     else if (e.code == "KeyH") {
@@ -147,44 +135,6 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-function renderItem(item: Item): HTMLElement {
-    function onCloseClick() {
-        if (item.isOpen) closeItem(item);
-        else openItem(item);
-    }
+document.body.appendChild(renderApp(root));
 
-    const itemElem = div({
-        className: "item",
-        classMap: { selected: item == selected },
-        children: [
-            div({
-                className: "chevron-container",
-                children: [chevronIcon()],
-                onClick: onCloseClick,
-            }),
-            div({ className: "square" }),
-            span({
-                className: "item-text",
-                children: [item.title],
-                onInput: (e) => (item.title = e.currentTarget.innerText),
-            }),
-        ],
-    });
-    views.set(item, itemElem);
-
-    updateItem(item);
-
-    if (item.isOpen)
-        return fragment(
-            itemElem,
-            div({
-                className: "children-container",
-                children: item.children.map(renderItem),
-            })
-        );
-    else return itemElem;
-}
-
-document.body.appendChild(
-    div({ className: "list", children: root.children.map(renderItem) })
-);
+updateSelection(undefined, selected);

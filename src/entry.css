@@ -23,8 +23,8 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .item {
-    display: flex;
     padding: 4px;
+    display: flex;
     align-items: center;
 }
 
@@ -43,6 +43,11 @@ body::-webkit-scrollbar-thumb:hover {
 .children-container {
     margin-left: 32px;
     border-left: 1.5px solid #404040;
+}
+
+.list > .children-container {
+    border: none;
+    margin-left: 0;
 }
 
 .chevron-container {

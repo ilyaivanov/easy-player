@@ -1,14 +1,13 @@
 type Props = {
     className?: string;
     classMap?: { [key: string]: boolean };
-    children?: (DocumentFragment | HTMLElement | string | undefined)[];
+    children?: (DocumentFragment | HTMLElement | string | undefined | false)[];
+    ref?: (elem: HTMLElement) => void;
     onClick?: (this: HTMLElement, mouse: MouseEvent) => void;
     onInput?: (
         this: HTMLElement,
         ev: Event & { currentTarget: HTMLElement }
     ) => void;
-
-    afterCreation?: ((elem: HTMLElement) => void)[];
 };
 
 export const div = (props: Props) =>
@@ -47,10 +46,11 @@ function assignHtmlElementProps<T extends HTMLElement>(
     if (props.onClick) elem.addEventListener("click", props.onClick);
     if (props.onInput) elem.addEventListener("input", props.onInput as any);
 
-    if (props.afterCreation) for (const fn of props.afterCreation) fn(elem);
+    if (props.ref) props.ref(elem);
 
     return elem;
 }
 
-export const insertAfter = (elem: HTMLElement, elemToInsert: HTMLElement) =>
+export const insertAfter = (elem: HTMLElement, elemToInsert: HTMLElement) => {
     elem.insertAdjacentElement("afterend", elemToInsert);
+};

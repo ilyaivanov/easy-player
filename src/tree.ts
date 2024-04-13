@@ -70,3 +70,45 @@ export function getItemBelow(item: Item): Item | undefined {
         }
     }
 }
+
+export function removeItemFromTree(item: Item) {
+    item.parent?.children.splice(getItemIndex(item), 1);
+    if (item.parent?.children.length == 0) item.parent.isOpen = false;
+}
+
+export function insertItemAfter(itemAfter: Item, itemToInsert: Item) {
+    const index = getItemIndex(itemAfter);
+    itemAfter.parent?.children.splice(index + 1, 0, itemToInsert);
+    itemToInsert.parent = itemAfter.parent;
+}
+
+export function insertItemBefore(itemAfter: Item, itemToInsert: Item) {
+    const index = getItemIndex(itemAfter);
+    itemAfter.parent?.children.splice(index, 0, itemToInsert);
+    itemToInsert.parent = itemAfter.parent;
+}
+
+export function insertItemAsFirstChild(itemParent: Item, itemToInsert: Item) {
+    itemParent.children.splice(0, 0, itemToInsert);
+    itemToInsert.parent = itemParent;
+}
+
+export function createEmptyItem(): Item {
+    return {
+        title: "",
+        children: [],
+        isOpen: false,
+        parent: undefined,
+        type: "node",
+    };
+}
+
+export function getItemToSelectAfterRemoval(selected: Item) {
+    const index = getItemIndex(selected);
+    if (index != 0) return selected.parent?.children[index - 1];
+    else if (selected.parent!.children.length > 1)
+        return selected.parent?.children[index + 1];
+    else {
+        return selected.parent;
+    }
+}
