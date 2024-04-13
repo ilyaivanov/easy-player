@@ -96,6 +96,10 @@ export function insertItemAsLastChild(itemParent: Item, itemToInsert: Item) {
     itemParent.children.splice(itemParent.children.length, 0, itemToInsert);
     itemToInsert.parent = itemParent;
 }
+export function insertItemAt(parent: Item, child: Item, index: number) {
+    parent.children.splice(index, 0, child);
+    child.parent = parent;
+}
 
 export function createEmptyItem(): Item {
     return {

@@ -12,6 +12,7 @@ import {
     insertItemAsFirstChild,
     getItemIndex,
     insertItemAsLastChild,
+    insertItemAt,
 } from "./tree";
 
 import "./entry.css";
@@ -75,42 +76,33 @@ function stopEditSelectedItem() {
     stopEdit(selected);
 }
 
+function moveItem(item: Item, newParent: Item, index: number) {
+    removeItemFromTree(selected);
+    removeItemFromDom(selected);
+
+    insertItemAt(newParent, item, index);
+    insertItemToDom(selected);
+
+    updateSelection(undefined, selected);
+}
+
 function moveSelectedDown() {
     const index = getItemIndex(selected);
-    if (index < selected.parent!.children.length - 1) {
-        removeItemFromTree(selected);
-        removeItemFromDom(selected);
-
-        insertItemAfter(selected.parent!.children[index], selected);
-        insertItemToDom(selected);
-
-        updateSelection(undefined, selected);
-    }
+    if (index < selected.parent!.children.length - 1)
+        moveItem(selected, selected.parent!, index + 1);
 }
+
 function moveSelectedUp() {
     const index = getItemIndex(selected);
-    if (index > 0) {
-        removeItemFromTree(selected);
-        removeItemFromDom(selected);
-
-        insertItemBefore(selected.parent!.children[index - 1], selected);
-        insertItemToDom(selected);
-
-        updateSelection(undefined, selected);
-    }
+    if (index > 0) moveItem(selected, selected.parent!, index - 1);
 }
+
 function moveSelectedLeft() {
     if (!isRoot(selected.parent!)) {
-        removeItemFromTree(selected);
-        removeItemFromDom(selected);
-
-        if (selected.parent?.children.length == 0) closeItem(selected.parent);
-
-        insertItemAfter(selected.parent!, selected);
-
-        insertItemToDom(selected);
-
-        updateSelection(undefined, selected);
+        const oldParent = selected.parent!;
+        if (oldParent.children.length == 1) closeItem(oldParent);
+        moveItem(selected, oldParent.parent!, getItemIndex(oldParent) + 1);
+        updateItem(oldParent);
     }
 }
 function moveSelectedRight() {
@@ -119,16 +111,8 @@ function moveSelectedRight() {
         const prev = selected.parent?.children[index - 1];
 
         if (prev) {
-            removeItemFromTree(selected);
-            removeItemFromDom(selected);
-
             if (!prev.isOpen) openItem(prev);
-
-            insertItemAsLastChild(prev, selected);
-
-            insertItemToDom(selected);
-
-            updateSelection(undefined, selected);
+            moveItem(selected, prev, prev.children.length);
         }
     }
 }
@@ -150,7 +134,6 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    //TODO: move items around
     //TODO: undo/redo
     if (e.code == "KeyO") {
         const item = createEmptyItem();
