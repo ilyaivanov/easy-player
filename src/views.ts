@@ -1,10 +1,11 @@
 import { onOpenToggleClick } from "./entry";
-import { div, fragment, insertAfter, span } from "./html";
+import { div, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
 import { Item, getItemIndex } from "./tree";
 
 type ItemViews = {
     children: HTMLElement;
+    container: HTMLElement;
     item: HTMLElement;
     square: HTMLElement;
     chevron: HTMLElement;
@@ -14,7 +15,7 @@ type ItemViews = {
 const views = new WeakMap<Item, ItemViews>();
 
 export function removeItemFromDom(item: Item) {
-    if (item.isOpen) views.get(item)?.item?.remove();
+    views.get(item)?.container.remove();
 }
 
 export function insertItemToDom(item: Item) {
@@ -69,14 +70,12 @@ export function updateItem(item: Item) {
 }
 
 export function startEdit(item: Item) {
-    //TODO: this is also ugly
     const elem = views.get(item)!.text;
     elem.contentEditable = "true";
     elem.focus();
 }
 
 export function stopEdit(item: Item) {
-    //TODO: this is also ugly
     const elem = views.get(item)!.text;
     elem.blur();
     elem.removeAttribute("contentEditable");
@@ -87,6 +86,7 @@ function renderItem(item: Item): HTMLElement {
     const view: ItemViews = {} as any;
     views.set(item, view);
     const itemElem = div({
+        ref: (ref) => (view.container = ref),
         children: [
             div({
                 className: "item",
@@ -124,15 +124,6 @@ function renderItem(item: Item): HTMLElement {
     updateItem(item);
 
     return itemElem;
-    // if (item.isOpen)
-    //     return fragment(
-    //         itemElem,
-    //         div({
-    //             className: "children-container",
-    //             children: item.children.map(renderItem),
-    //         })
-    //     );
-    // else return itemElem;
 }
 
 const renderChildren = (item: Item) =>

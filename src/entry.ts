@@ -10,6 +10,8 @@ import {
     insertItemAfter,
     insertItemBefore,
     insertItemAsFirstChild,
+    getItemIndex,
+    insertItemAsLastChild,
 } from "./tree";
 
 import "./entry.css";
@@ -73,6 +75,64 @@ function stopEditSelectedItem() {
     stopEdit(selected);
 }
 
+function moveSelectedDown() {
+    const index = getItemIndex(selected);
+    if (index < selected.parent!.children.length - 1) {
+        removeItemFromTree(selected);
+        removeItemFromDom(selected);
+
+        insertItemAfter(selected.parent!.children[index], selected);
+        insertItemToDom(selected);
+
+        updateSelection(undefined, selected);
+    }
+}
+function moveSelectedUp() {
+    const index = getItemIndex(selected);
+    if (index > 0) {
+        removeItemFromTree(selected);
+        removeItemFromDom(selected);
+
+        insertItemBefore(selected.parent!.children[index - 1], selected);
+        insertItemToDom(selected);
+
+        updateSelection(undefined, selected);
+    }
+}
+function moveSelectedLeft() {
+    if (!isRoot(selected.parent!)) {
+        removeItemFromTree(selected);
+        removeItemFromDom(selected);
+
+        if (selected.parent?.children.length == 0) closeItem(selected.parent);
+
+        insertItemAfter(selected.parent!, selected);
+
+        insertItemToDom(selected);
+
+        updateSelection(undefined, selected);
+    }
+}
+function moveSelectedRight() {
+    const index = getItemIndex(selected);
+    if (index > 0) {
+        const prev = selected.parent?.children[index - 1];
+
+        if (prev) {
+            removeItemFromTree(selected);
+            removeItemFromDom(selected);
+
+            if (!prev.isOpen) openItem(prev);
+
+            insertItemAsLastChild(prev, selected);
+
+            insertItemToDom(selected);
+
+            updateSelection(undefined, selected);
+        }
+    }
+}
+
 //TODO: this is a cyclical dependency from views.ts. Needs to remove cycles and extract this
 export function onOpenToggleClick(item: Item) {
     if (item.isOpen) closeItem(item);
@@ -92,7 +152,6 @@ document.addEventListener("keydown", (e) => {
 
     //TODO: move items around
     //TODO: undo/redo
-
     if (e.code == "KeyO") {
         const item = createEmptyItem();
 
@@ -118,16 +177,23 @@ document.addEventListener("keydown", (e) => {
         updateItem(selected.parent!);
 
         selectItem(nextSelected);
-    } else if (e.code == "KeyJ") selectItem(getItemBelow(selected));
-    else if (e.code == "KeyK") selectItem(getItemAbove(selected));
-    else if (e.code == "KeyH") {
-        if (selected.isOpen) closeItem(selected);
+    } else if (e.code == "KeyJ") {
+        if (e.altKey) moveSelectedDown();
+        else selectItem(getItemBelow(selected));
+    } else if (e.code == "KeyK") {
+        if (e.altKey) moveSelectedUp();
+        else selectItem(getItemAbove(selected));
+    } else if (e.code == "KeyH") {
+        if (e.altKey) moveSelectedLeft();
+        else if (selected.isOpen) closeItem(selected);
         else if (selected.parent && !isRoot(selected.parent))
             selectItem(selected.parent);
     } else if (e.code == "KeyL") {
-        if (selected.isOpen && selected.children.length > 0)
+        if (e.altKey) moveSelectedRight();
+        else if (selected.isOpen && selected.children.length > 0)
             selectItem(selected.children[0]);
-        else if (!selected.isOpen) openItem(selected);
+        else if (!selected.isOpen && selected.children.length > 0)
+            openItem(selected);
     } else if (e.code == "KeyI") {
         startEditSelectedItem();
 
