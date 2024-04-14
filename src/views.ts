@@ -1,3 +1,4 @@
+import { itemRenamed } from "./actions";
 import { onOpenToggleClick } from "./entry";
 import { div, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
@@ -20,10 +21,10 @@ export function removeItemFromDom(item: Item) {
 
 export function insertItemToDom(item: Item) {
     const index = getItemIndex(item);
-    let childrenElem = views.get(item.parent!)?.children;
+    let childrenElem = views.get(item.parent)?.children;
     if (!childrenElem) {
-        openItemDom(item.parent!);
-    } else if (index >= item.parent!.children.length)
+        openItemDom(item.parent);
+    } else if (index >= item.parent.children.length)
         childrenElem?.appendChild(renderItem(item));
     else
         childrenElem!.insertBefore(
@@ -60,6 +61,7 @@ export function updateItem(item: Item) {
     const itemElem = views.get(item);
     if (!itemElem) return;
 
+    itemElem.text.innerText = item.title;
     if (item.children.length == 0) itemElem.item.classList.add("empty");
     else {
         itemElem.item.classList.remove("empty");
@@ -74,9 +76,13 @@ export function startEdit(item: Item) {
     elem.contentEditable = "true";
     elem.focus();
 }
+export function emptyText(item: Item) {
+    views.get(item)!.text.innerText = "";
+}
 
 export function stopEdit(item: Item) {
     const elem = views.get(item)!.text;
+    itemRenamed(item, elem.innerText);
     elem.blur();
     elem.removeAttribute("contentEditable");
 }
@@ -107,8 +113,6 @@ function renderItem(item: Item): HTMLElement {
                         className: "item-text",
                         children: [item.title],
                         ref: (ref) => (view.text = ref),
-                        onInput: (e) =>
-                            (item.title = e.currentTarget.innerText),
                     }),
                 ],
             }),

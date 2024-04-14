@@ -6,18 +6,17 @@ import {
     isRoot,
     node,
     removeItemFromTree,
-    getItemToSelectAfterRemoval,
     insertItemAfter,
     insertItemBefore,
     insertItemAsFirstChild,
     getItemIndex,
-    insertItemAsLastChild,
     insertItemAt,
 } from "./tree";
 
 import "./entry.css";
 import {
     closeItemDom,
+    emptyText,
     insertItemToDom,
     openItemDom,
     removeItemFromDom,
@@ -27,6 +26,12 @@ import {
     updateItem,
     updateSelection,
 } from "./views";
+import {
+    itemCreated,
+    redoLastChange,
+    removeItem,
+    undoLastChange,
+} from "./actions";
 
 const root: Item = node("Root", [
     node("Music", [
@@ -48,7 +53,7 @@ let selected: Item = root.children[0];
 type Mode = "Normal" | "Insert";
 let mode: Mode = "Normal";
 
-function selectItem(item: Item | undefined) {
+export function selectItem(item: Item | undefined) {
     if (!item) return;
 
     updateSelection(selected, item);
@@ -66,12 +71,12 @@ function openItem(item: Item) {
     openItemDom(item);
 }
 
-function startEditSelectedItem() {
+export function startEditSelectedItem() {
     mode = "Insert";
     startEdit(selected);
 }
 
-function stopEditSelectedItem() {
+export function stopEditSelectedItem() {
     mode = "Normal";
     stopEdit(selected);
 }
@@ -83,32 +88,33 @@ function moveItem(item: Item, newParent: Item, index: number) {
     insertItemAt(newParent, item, index);
     insertItemToDom(selected);
 
+    updateItem(newParent);
     updateSelection(undefined, selected);
 }
 
 function moveSelectedDown() {
     const index = getItemIndex(selected);
-    if (index < selected.parent!.children.length - 1)
-        moveItem(selected, selected.parent!, index + 1);
+    if (index < selected.parent.children.length - 1)
+        moveItem(selected, selected.parent, index + 1);
 }
 
 function moveSelectedUp() {
     const index = getItemIndex(selected);
-    if (index > 0) moveItem(selected, selected.parent!, index - 1);
+    if (index > 0) moveItem(selected, selected.parent, index - 1);
 }
 
 function moveSelectedLeft() {
-    if (!isRoot(selected.parent!)) {
-        const oldParent = selected.parent!;
+    if (!isRoot(selected.parent)) {
+        const oldParent = selected.parent;
         if (oldParent.children.length == 1) closeItem(oldParent);
-        moveItem(selected, oldParent.parent!, getItemIndex(oldParent) + 1);
+        moveItem(selected, oldParent.parent, getItemIndex(oldParent) + 1);
         updateItem(oldParent);
     }
 }
 function moveSelectedRight() {
     const index = getItemIndex(selected);
     if (index > 0) {
-        const prev = selected.parent?.children[index - 1];
+        const prev = selected.parent.children[index - 1];
 
         if (prev) {
             if (!prev.isOpen) openItem(prev);
@@ -126,7 +132,6 @@ export function onOpenToggleClick(item: Item) {
 document.addEventListener("keydown", (e) => {
     if (mode == "Insert" && (e.code == "Enter" || e.code == "Escape")) {
         stopEditSelectedItem();
-
         return;
     }
 
@@ -134,16 +139,18 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    //TODO: undo/redo
+    if (e.code == "KeyU") {
+        if (e.shiftKey) redoLastChange();
+        else undoLastChange();
+    }
     if (e.code == "KeyO") {
         const item = createEmptyItem();
 
         if (e.shiftKey) insertItemBefore(selected, item);
-        if (e.ctrlKey) {
-            insertItemAsFirstChild(selected, item);
-            e.preventDefault();
-        } else insertItemAfter(selected, item);
+        if (e.ctrlKey) insertItemAsFirstChild(selected, item);
+        else insertItemAfter(selected, item);
 
+        itemCreated(item);
         updateItem(selected);
         insertItemToDom(item);
 
@@ -151,15 +158,7 @@ document.addEventListener("keydown", (e) => {
         startEditSelectedItem();
         e.preventDefault();
     } else if (e.code == "KeyD") {
-        const nextSelected = getItemToSelectAfterRemoval(selected);
-        removeItemFromTree(selected);
-
-        removeItemFromDom(selected);
-
-        //TODO: this is ugly, need to think
-        updateItem(selected.parent!);
-
-        selectItem(nextSelected);
+        removeItem(selected);
     } else if (e.code == "KeyJ") {
         if (e.altKey) moveSelectedDown();
         else selectItem(getItemBelow(selected));
@@ -179,6 +178,11 @@ document.addEventListener("keydown", (e) => {
             openItem(selected);
     } else if (e.code == "KeyI") {
         startEditSelectedItem();
+
+        e.preventDefault();
+    } else if (e.code == "KeyR" && !e.ctrlKey) {
+        startEditSelectedItem();
+        emptyText(selected);
 
         e.preventDefault();
     }

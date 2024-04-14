@@ -3,7 +3,7 @@ export type Item = {
     children: Item[];
     type: "node";
     isOpen: boolean;
-    parent: Item | undefined;
+    parent: Item;
 };
 
 export function node(title: string, childs?: Item[]): Item {
@@ -13,17 +13,18 @@ export function node(title: string, childs?: Item[]): Item {
         children,
         type: "node",
         isOpen: children.length > 0,
-        parent: undefined,
+        parent: undefined as unknown as Item,
     };
+    item.parent = item;
     children.forEach((c) => (c.parent = item));
     return item;
 }
 
 export function getItemAbove(item: Item): Item | undefined {
-    const index = item.parent!.children.indexOf(item);
+    const index = item.parent.children.indexOf(item);
 
     if (index > 0) {
-        let prevItem = item.parent!.children[index - 1];
+        let prevItem = item.parent.children[index - 1];
         if (prevItem.isOpen) {
             //looking for the most nested item
             while (prevItem.isOpen)
@@ -32,14 +33,13 @@ export function getItemAbove(item: Item): Item | undefined {
         return prevItem;
     }
 
-    if (item.parent?.parent) {
+    if (!isRoot(item.parent)) {
         return item.parent;
     }
 }
 
 export function getItemIndex(item: Item) {
-    if (item.parent) return item.parent.children.indexOf(item);
-    return -1;
+    return item.parent.children.indexOf(item);
 }
 
 export function getChildAt(parent: Item, index: number) {
@@ -47,7 +47,7 @@ export function getChildAt(parent: Item, index: number) {
 }
 
 export function isRoot(item: Item) {
-    return !item.parent;
+    return item.parent == item;
 }
 
 export function getItemBelow(item: Item): Item | undefined {
@@ -59,9 +59,8 @@ export function getItemBelow(item: Item): Item | undefined {
             return getChildAt(parent, itemIndex + 1);
         } else {
             while (
-                parent &&
                 !isRoot(parent) &&
-                getItemIndex(parent) == parent.parent!.children.length - 1 &&
+                getItemIndex(parent) == parent.parent.children.length - 1 &&
                 parent.isOpen
             )
                 parent = parent.parent;
@@ -72,19 +71,19 @@ export function getItemBelow(item: Item): Item | undefined {
 }
 
 export function removeItemFromTree(item: Item) {
-    item.parent?.children.splice(getItemIndex(item), 1);
-    if (item.parent?.children.length == 0) item.parent.isOpen = false;
+    item.parent.children.splice(getItemIndex(item), 1);
+    if (item.parent.children.length == 0) item.parent.isOpen = false;
 }
 
 export function insertItemAfter(itemAfter: Item, itemToInsert: Item) {
     const index = getItemIndex(itemAfter);
-    itemAfter.parent?.children.splice(index + 1, 0, itemToInsert);
+    itemAfter.parent.children.splice(index + 1, 0, itemToInsert);
     itemToInsert.parent = itemAfter.parent;
 }
 
 export function insertItemBefore(itemAfter: Item, itemToInsert: Item) {
     const index = getItemIndex(itemAfter);
-    itemAfter.parent?.children.splice(index, 0, itemToInsert);
+    itemAfter.parent.children.splice(index, 0, itemToInsert);
     itemToInsert.parent = itemAfter.parent;
 }
 
@@ -106,16 +105,16 @@ export function createEmptyItem(): Item {
         title: "",
         children: [],
         isOpen: false,
-        parent: undefined,
+        parent: undefined as unknown as Item,
         type: "node",
     };
 }
 
 export function getItemToSelectAfterRemoval(selected: Item) {
     const index = getItemIndex(selected);
-    if (index != 0) return selected.parent?.children[index - 1];
-    else if (selected.parent!.children.length > 1)
-        return selected.parent?.children[index + 1];
+    if (index != 0) return selected.parent.children[index - 1];
+    else if (selected.parent.children.length > 1)
+        return selected.parent.children[index + 1];
     else {
         return selected.parent;
     }
