@@ -104,6 +104,12 @@ export function createEmptyItem(): Item {
     };
 }
 
+export function createEmptyRoot(): Item {
+    const item = createEmptyItem();
+    item.parent = item;
+    return item;
+}
+
 export function getItemToSelectAfterRemoval(selected: Item) {
     const index = getItemIndex(selected);
     if (index != 0) return selected.parent.children[index - 1];

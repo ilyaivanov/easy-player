@@ -1,5 +1,5 @@
 import { itemRenamed } from "./actions";
-import { onOpenToggleClick } from "./entry";
+import { onOpenToggleClick } from "./index";
 import { div, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
 import { Item, getItemIndex, isRoot } from "./tree";

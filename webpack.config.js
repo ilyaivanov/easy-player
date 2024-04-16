@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = (env, argv) => {
     const isProd = argv.mode === "production";
     return {
-        entry: "./src/entry.ts",
+        entry: "./src/index.ts",
         output: {
             path: path.resolve(__dirname, "dist"),
             filename: "app.[chunkhash].js",

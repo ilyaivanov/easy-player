@@ -1,4 +1,4 @@
-import { selectItem } from "./entry";
+import { moveItem, selectItem, showNewRoot } from "./index";
 import {
     Item,
     createEmptyItem,
@@ -31,13 +31,12 @@ type Change =
     | { type: "rename"; oldName: string; newName: string; item: Item }
     | { type: "remove"; position: number; item: Item }
     | { type: "add"; position: number; item: Item }
-    | { type: "move" };
+    | { type: "loaded"; oldRoot: Item; oldSelected: Item; newRoot: Item; newSelected: Item }
+    | { type: "move"; item: Item; oldIndex: number; oldParent: Item; newIndex: number; newParent: Item };
 
 const changeHistory: Change[] = [];
 
 let currentChange = -1;
-
-// export function itemRenamed(item: Item, )
 
 //TODO: ugly fucking name. Need to think abouts actions/tree/views
 function remItem(item: Item) {
@@ -81,14 +80,24 @@ export function itemRenamed(item: Item, newName: string) {
     item.title = newName;
 }
 
+export function rootLoaded(oldRoot: Item, oldSelected: Item, newRoot: Item, newSelected: Item) {
+    pushNewChange({ type: "loaded", oldRoot, oldSelected, newRoot, newSelected });
+}
+
+export function itemMoved(item: Item, oldParent: Item, oldIndex: number, newParent: Item, newIndex: number) {
+    pushNewChange({ type: "move", item, oldParent, oldIndex, newParent, newIndex });
+}
+
 export function undoLastChange() {
     if (currentChange > -1) {
         const change = changeHistory[currentChange];
         currentChange--;
         if (change.type == "remove") {
             const { item, position } = change;
-            insertItemAt(item.parent!, item, position);
+            insertItemAt(item.parent, item, position);
             insertItemToDom(item);
+            item.parent.isOpen = true;
+            updateItem(item.parent);
 
             selectItem(item);
         } else if (change.type == "add") {
@@ -97,6 +106,10 @@ export function undoLastChange() {
             change.item.title = change.oldName;
             updateItem(change.item);
             selectItem(change.item);
+        } else if (change.type == "loaded") {
+            showNewRoot(change.oldRoot, change.oldSelected);
+        } else if (change.type == "move") {
+            moveItem(change.item, change.oldParent, change.oldIndex);
         }
     }
 }
@@ -108,13 +121,17 @@ export function redoLastChange() {
         if (change.type == "remove") {
             remItem(change.item);
         } else if (change.type == "add") {
-            insertItemAt(change.item.parent!, change.item, change.position);
+            insertItemAt(change.item.parent, change.item, change.position);
             insertItemToDom(change.item);
             selectItem(change.item);
         } else if (change.type == "rename") {
             change.item.title = change.newName;
             updateItem(change.item);
             selectItem(change.item);
+        } else if (change.type == "loaded") {
+            showNewRoot(change.newRoot, change.newSelected);
+        } else if (change.type == "move") {
+            moveItem(change.item, change.newParent, change.newIndex);
         }
     }
 }

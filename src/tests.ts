@@ -1,4 +1,4 @@
-import { selected } from "./entry";
+import { selected } from "./index";
 import { Item } from "./tree";
 import { views } from "./views";
 

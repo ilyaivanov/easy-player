@@ -26,12 +26,13 @@ import {
     updateItem,
     updateSelection,
 } from "./views";
-import { itemCreated, redoLastChange, removeItem, undoLastChange } from "./actions";
+import { itemCreated, itemMoved, redoLastChange, removeItem, rootLoaded, undoLastChange } from "./actions";
 import { readFile, saveFile } from "./saveLoad";
 
+// Uncommend to enable E2E tests (currently very minimal)
 // import "./tests";
 
-export const root: Item = node("Root", [
+export let root: Item = node("Root", [
     node("Music", [
         node("Electro"),
         node("Piano"),
@@ -75,7 +76,7 @@ export function stopEditSelectedItem() {
     stopEdit(selected);
 }
 
-function moveItem(item: Item, newParent: Item, index: number) {
+export function moveItem(item: Item, newParent: Item, index: number) {
     removeItemFromTree(selected);
     removeItemFromDom(selected);
 
@@ -86,21 +87,26 @@ function moveItem(item: Item, newParent: Item, index: number) {
     updateSelection(undefined, selected);
 }
 
+function moveItemAndRecordChange(item: Item, newParent: Item, index: number) {
+    itemMoved(item, item.parent, getItemIndex(item), newParent, index);
+    moveItem(item, newParent, index);
+}
+
 function moveSelectedDown() {
     const index = getItemIndex(selected);
-    if (index < selected.parent.children.length - 1) moveItem(selected, selected.parent, index + 1);
+    if (index < selected.parent.children.length - 1) moveItemAndRecordChange(selected, selected.parent, index + 1);
 }
 
 function moveSelectedUp() {
     const index = getItemIndex(selected);
-    if (index > 0) moveItem(selected, selected.parent, index - 1);
+    if (index > 0) moveItemAndRecordChange(selected, selected.parent, index - 1);
 }
 
 function moveSelectedLeft() {
     if (!isRoot(selected.parent)) {
         const oldParent = selected.parent;
         if (oldParent.children.length == 1) closeItem(oldParent);
-        moveItem(selected, oldParent.parent, getItemIndex(oldParent) + 1);
+        moveItemAndRecordChange(selected, oldParent.parent, getItemIndex(oldParent) + 1);
         updateItem(oldParent);
     }
 }
@@ -111,7 +117,7 @@ function moveSelectedRight() {
 
         if (prev) {
             if (!prev.isOpen) openItem(prev);
-            moveItem(selected, prev, prev.children.length);
+            moveItemAndRecordChange(selected, prev, prev.children.length);
         }
     }
 }
@@ -120,6 +126,13 @@ function moveSelectedRight() {
 export function onOpenToggleClick(item: Item) {
     if (item.isOpen) closeItem(item);
     else openItem(item);
+}
+
+export function showNewRoot(newRoot: Item, selectedItem: Item) {
+    root = newRoot;
+    document.body.replaceChildren();
+    init();
+    selectItem(selectedItem);
 }
 
 document.addEventListener("keydown", async (e) => {
@@ -137,12 +150,11 @@ document.addEventListener("keydown", async (e) => {
         e.preventDefault();
     } else if (e.code == "KeyE" && e.ctrlKey) {
         e.preventDefault();
-        const haveLoaded = await readFile(root);
-        if (haveLoaded) {
-            document.body.replaceChildren();
-
-            init();
-            selectItem(root.children[0]);
+        const newRoot = await readFile();
+        if (newRoot) {
+            const newSelected = newRoot.children[0];
+            rootLoaded(root, selected, newRoot, newSelected);
+            showNewRoot(newRoot, newSelected);
         }
     } else if (e.code == "KeyU") {
         if (e.shiftKey) redoLastChange();

@@ -1,4 +1,4 @@
-import { Item, insertItemAsLastChild, node } from "./tree";
+import { Item, createEmptyRoot, insertItemAsLastChild, node } from "./tree";
 
 const types: FilePickerAcceptType[] = [{ description: "Text files", accept: { "txt/*": [".txt"] } }];
 export async function saveFile(root: Item) {
@@ -33,7 +33,7 @@ export async function saveFile(root: Item) {
     }
 }
 
-export async function readFile(root: Item): Promise<boolean> {
+export async function readFile(): Promise<Item | undefined> {
     try {
         const [fileHandle] = await window.showOpenFilePicker({
             types,
@@ -42,7 +42,7 @@ export async function readFile(root: Item): Promise<boolean> {
         const file = await fileHandle.getFile();
         const res = await file.text();
 
-        root.children = [];
+        const root = createEmptyRoot();
         const lines = res.split("\n");
         const stack = [{ item: root, level: -1 }];
 
@@ -64,9 +64,9 @@ export async function readFile(root: Item): Promise<boolean> {
             }
         }
 
-        return true;
+        return root;
     } catch (e: any) {
-        if (e instanceof DOMException && e.name == "AbortError") return false;
+        if (e instanceof DOMException && e.name == "AbortError") return undefined;
         else throw e;
     }
 }
