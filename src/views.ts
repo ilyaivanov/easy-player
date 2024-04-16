@@ -2,7 +2,7 @@ import { itemRenamed } from "./actions";
 import { onOpenToggleClick } from "./entry";
 import { div, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
-import { Item, getItemIndex } from "./tree";
+import { Item, getItemIndex, isRoot } from "./tree";
 
 type ItemViews = {
     children: HTMLElement;
@@ -13,7 +13,7 @@ type ItemViews = {
     text: HTMLElement;
 };
 
-const views = new WeakMap<Item, ItemViews>();
+export const views = new WeakMap<Item, ItemViews>();
 
 export function removeItemFromDom(item: Item) {
     views.get(item)?.container.remove();
@@ -24,19 +24,11 @@ export function insertItemToDom(item: Item) {
     let childrenElem = views.get(item.parent)?.children;
     if (!childrenElem) {
         openItemDom(item.parent);
-    } else if (index >= item.parent.children.length)
-        childrenElem?.appendChild(renderItem(item));
-    else
-        childrenElem!.insertBefore(
-            renderItem(item),
-            childrenElem!.childNodes[index]
-        );
+    } else if (index >= item.parent.children.length) childrenElem?.appendChild(renderItem(item));
+    else childrenElem!.insertBefore(renderItem(item), childrenElem!.childNodes[index]);
 }
 
-export function updateSelection(
-    prev: Item | undefined,
-    current: Item | undefined
-) {
+export function updateSelection(prev: Item | undefined, current: Item | undefined) {
     prev && views.get(prev)?.item.classList.remove("selected");
     current && views.get(current)?.item.classList.add("selected");
 }
@@ -59,7 +51,7 @@ export function openItemDom(item: Item) {
 
 export function updateItem(item: Item) {
     const itemElem = views.get(item);
-    if (!itemElem) return;
+    if (!itemElem || isRoot(item)) return;
 
     itemElem.text.innerText = item.title;
     if (item.children.length == 0) itemElem.item.classList.add("empty");

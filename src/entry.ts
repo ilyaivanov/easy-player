@@ -26,29 +26,22 @@ import {
     updateItem,
     updateSelection,
 } from "./views";
-import {
-    itemCreated,
-    redoLastChange,
-    removeItem,
-    undoLastChange,
-} from "./actions";
+import { itemCreated, redoLastChange, removeItem, undoLastChange } from "./actions";
 
-const root: Item = node("Root", [
+// import "./tests";
+
+export const root: Item = node("Root", [
     node("Music", [
         node("Electro"),
         node("Piano"),
-        node("Ambient", [
-            node("Carbon Based Lifeforms"),
-            node("Sync24"),
-            node("James Murray"),
-        ]),
+        node("Ambient", [node("Carbon Based Lifeforms"), node("Sync24"), node("James Murray")]),
     ]),
     node("Software Development"),
     node("Channels"),
     node("Four"),
 ]);
 
-let selected: Item = root.children[0];
+export let selected: Item = root.children[0];
 
 type Mode = "Normal" | "Insert";
 let mode: Mode = "Normal";
@@ -94,8 +87,7 @@ function moveItem(item: Item, newParent: Item, index: number) {
 
 function moveSelectedDown() {
     const index = getItemIndex(selected);
-    if (index < selected.parent.children.length - 1)
-        moveItem(selected, selected.parent, index + 1);
+    if (index < selected.parent.children.length - 1) moveItem(selected, selected.parent, index + 1);
 }
 
 function moveSelectedUp() {
@@ -129,6 +121,84 @@ export function onOpenToggleClick(item: Item) {
     else openItem(item);
 }
 
+const types: FilePickerAcceptType[] = [{ description: "Text files", accept: { "txt/*": [".txt"] } }];
+async function saveFile() {
+    try {
+        const newHandle = await window.showSaveFilePicker({
+            types,
+            suggestedName: "items.txt",
+        });
+        const writableStream = await newHandle.createWritable();
+
+        let res = "";
+        const stack = [...root.children.reverse()];
+        const levels = root.children.map(() => 0);
+        while (stack.length != 0) {
+            const item = stack.pop()!;
+            const currentLevel = levels.pop()!;
+
+            for (let i = 0; i < currentLevel * 2; i++) res += " ";
+            res += `${item.title}\n`;
+
+            if (item.children.length > 0) {
+                stack.push(...item.children.reverse());
+                levels.push(...item.children.map(() => currentLevel + 1));
+            }
+        }
+
+        await writableStream.write(res);
+        await writableStream.close();
+    } catch (e) {}
+}
+
+function pushChild(parent: Item, child: Item) {
+    parent.children.push(child);
+    child.parent = parent;
+}
+
+async function readFile() {
+    try {
+        const [fileHandle] = await window.showOpenFilePicker({
+            types,
+            multiple: false,
+        });
+        const file = await fileHandle.getFile();
+        const res = await file.text();
+
+        root.children = [];
+        const lines = res.split("\n");
+        const stack = [root];
+        const levels = [-1];
+
+        for (const line of lines) {
+            let level = 0;
+            while (line[level] == " ") level++;
+
+            while (levels[levels.length - 1] >= level) {
+                stack.pop();
+                levels.pop();
+            }
+
+            const parent = stack[stack.length - 1];
+            const trimmed = line.trim();
+
+            if (trimmed.length != 0) {
+                const item = node(trimmed);
+                stack.push(item);
+                levels.push(level);
+
+                parent.isOpen = true;
+                pushChild(parent, item);
+            }
+        }
+
+        document.body.replaceChildren();
+
+        init();
+        selectItem(root.children[0]);
+    } catch (e) {}
+}
+
 document.addEventListener("keydown", (e) => {
     if (mode == "Insert" && (e.code == "Enter" || e.code == "Escape")) {
         stopEditSelectedItem();
@@ -139,11 +209,16 @@ document.addEventListener("keydown", (e) => {
         return;
     }
 
-    if (e.code == "KeyU") {
+    if (e.code == "KeyS" && e.ctrlKey) {
+        saveFile();
+        e.preventDefault();
+    } else if (e.code == "KeyE" && e.ctrlKey) {
+        readFile();
+        e.preventDefault();
+    } else if (e.code == "KeyU") {
         if (e.shiftKey) redoLastChange();
         else undoLastChange();
-    }
-    if (e.code == "KeyO") {
+    } else if (e.code == "KeyO") {
         const item = createEmptyItem();
 
         if (e.shiftKey) insertItemBefore(selected, item);
@@ -168,14 +243,11 @@ document.addEventListener("keydown", (e) => {
     } else if (e.code == "KeyH") {
         if (e.altKey) moveSelectedLeft();
         else if (selected.isOpen) closeItem(selected);
-        else if (selected.parent && !isRoot(selected.parent))
-            selectItem(selected.parent);
+        else if (selected.parent && !isRoot(selected.parent)) selectItem(selected.parent);
     } else if (e.code == "KeyL") {
         if (e.altKey) moveSelectedRight();
-        else if (selected.isOpen && selected.children.length > 0)
-            selectItem(selected.children[0]);
-        else if (!selected.isOpen && selected.children.length > 0)
-            openItem(selected);
+        else if (selected.isOpen && selected.children.length > 0) selectItem(selected.children[0]);
+        else if (!selected.isOpen && selected.children.length > 0) openItem(selected);
     } else if (e.code == "KeyI") {
         startEditSelectedItem();
 
@@ -188,6 +260,11 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-document.body.appendChild(renderApp(root));
+//TODO: stupid fucking name, but renderApp is taken. To think
+function init() {
+    document.body.appendChild(renderApp(root));
 
-updateSelection(undefined, selected);
+    updateSelection(undefined, selected);
+}
+
+init();

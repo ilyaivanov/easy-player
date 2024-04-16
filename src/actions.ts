@@ -55,10 +55,7 @@ function remItem(item: Item) {
 
 function pushNewChange(change: Change) {
     if (currentChange < changeHistory.length - 1) {
-        changeHistory.splice(
-            currentChange + 1,
-            changeHistory.length - currentChange - 1
-        );
+        changeHistory.splice(currentChange + 1, changeHistory.length - currentChange - 1);
     }
 
     changeHistory.push(change);
