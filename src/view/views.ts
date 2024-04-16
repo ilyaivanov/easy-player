@@ -1,8 +1,6 @@
-import { itemRenamed } from "./actions";
-import { onOpenToggleClick } from "./index";
 import { div, insertAfter, span } from "./html";
 import { chevronIcon } from "./icons";
-import { Item, getItemIndex, isRoot } from "./tree";
+import { Item, getItemIndex, isRoot } from "../tree";
 
 type ItemViews = {
     children: HTMLElement;
@@ -23,9 +21,12 @@ export function insertItemToDom(item: Item) {
     const index = getItemIndex(item);
     let childrenElem = views.get(item.parent)?.children;
     if (!childrenElem) {
-        openItemDom(item.parent);
-    } else if (index >= item.parent.children.length) childrenElem?.appendChild(renderItem(item));
-    else childrenElem!.insertBefore(renderItem(item), childrenElem!.childNodes[index]);
+        insertChildren(item.parent);
+    } else if (index >= item.parent.children.length) {
+        childrenElem?.appendChild(renderItem(item));
+    } else {
+        childrenElem!.insertBefore(renderItem(item), childrenElem!.childNodes[index]);
+    }
 }
 
 export function updateSelection(prev: Item | undefined, current: Item | undefined) {
@@ -33,20 +34,18 @@ export function updateSelection(prev: Item | undefined, current: Item | undefine
     current && views.get(current)?.item.classList.add("selected");
 }
 
-export function closeItemDom(item: Item) {
+export function removeChildren(item: Item) {
     const itemElem = views.get(item);
     if (!itemElem) return;
 
     itemElem.children.remove();
-    updateItem(item);
 }
 
-export function openItemDom(item: Item) {
+export function insertChildren(item: Item) {
     const itemElem = views.get(item);
     if (!itemElem) return;
 
     insertAfter(itemElem.item, renderChildren(item));
-    updateItem(item);
 }
 
 export function updateItem(item: Item) {
@@ -74,9 +73,17 @@ export function emptyText(item: Item) {
 
 export function stopEdit(item: Item) {
     const elem = views.get(item)!.text;
-    itemRenamed(item, elem.innerText);
     elem.blur();
     elem.removeAttribute("contentEditable");
+}
+
+export function getItemTitle(item: Item) {
+    return views.get(item)!.text.innerText;
+}
+
+function onToggle(item: Item) {
+    const ev = new CustomEvent("toggle-item", { detail: item });
+    document.dispatchEvent(ev);
 }
 
 function renderItem(item: Item): HTMLElement {
@@ -94,7 +101,7 @@ function renderItem(item: Item): HTMLElement {
                         ref: (ref) => (view.chevron = ref),
                         className: "chevron-container",
                         children: [chevronIcon()],
-                        onClick: () => onOpenToggleClick(item),
+                        onClick: () => onToggle(item),
                     }),
                     div({
                         className: "square",
@@ -129,7 +136,7 @@ const renderChildren = (item: Item) =>
         ref: (ref) => (views.get(item)!.children = ref),
     });
 
-export const renderApp = (root: Item) => {
+export const renderList = (root: Item) => {
     views.set(root, {} as any);
     return div({
         className: "list",

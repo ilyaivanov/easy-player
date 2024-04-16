@@ -91,6 +91,7 @@ export function insertItemAsLastChild(itemParent: Item, itemToInsert: Item) {
 }
 export function insertItemAt(parent: Item, child: Item, index: number) {
     parent.children.splice(index, 0, child);
+    parent.isOpen = true;
     child.parent = parent;
 }
 

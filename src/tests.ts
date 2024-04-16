@@ -1,6 +1,6 @@
 import { selected } from "./index";
 import { Item } from "./tree";
-import { views } from "./views";
+import { views } from "./view/views";
 
 const WAIT_TIME = 200;
 function animateBg(item: Item, color: string) {
