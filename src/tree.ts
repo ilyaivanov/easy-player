@@ -27,14 +27,28 @@ export function getItemAbove(item: Item): Item | undefined {
         let prevItem = item.parent.children[index - 1];
         if (prevItem.isOpen) {
             //looking for the most nested item
-            while (prevItem.isOpen)
-                prevItem = getChildAt(prevItem, prevItem.children.length - 1);
+            while (prevItem.isOpen) prevItem = getChildAt(prevItem, prevItem.children.length - 1);
         }
         return prevItem;
     }
 
     if (!isRoot(item.parent)) {
         return item.parent;
+    }
+}
+
+export function getItemBelow(item: Item): Item | undefined {
+    if (item.isOpen) return item.children[0];
+    else {
+        let parent = item.parent;
+        let itemIndex = getItemIndex(item);
+        if (parent && itemIndex < parent.children.length - 1) {
+            return getChildAt(parent, itemIndex + 1);
+        } else {
+            while (!isRoot(parent) && getItemIndex(parent) == parent.parent.children.length - 1 && parent.isOpen)
+                parent = parent.parent;
+            if (parent && !isRoot(parent)) return getChildAt(parent.parent, getItemIndex(parent) + 1);
+        }
     }
 }
 
@@ -48,26 +62,6 @@ export function getChildAt(parent: Item, index: number) {
 
 export function isRoot(item: Item) {
     return item.parent == item;
-}
-
-export function getItemBelow(item: Item): Item | undefined {
-    if (item.isOpen) return item.children[0];
-    else {
-        let parent = item.parent;
-        let itemIndex = getItemIndex(item);
-        if (parent && itemIndex < parent.children.length - 1) {
-            return getChildAt(parent, itemIndex + 1);
-        } else {
-            while (
-                !isRoot(parent) &&
-                getItemIndex(parent) == parent.parent.children.length - 1 &&
-                parent.isOpen
-            )
-                parent = parent.parent;
-            if (parent && parent.parent)
-                return getChildAt(parent.parent, getItemIndex(parent) + 1);
-        }
-    }
 }
 
 export function removeItemFromTree(item: Item) {
@@ -113,8 +107,7 @@ export function createEmptyItem(): Item {
 export function getItemToSelectAfterRemoval(selected: Item) {
     const index = getItemIndex(selected);
     if (index != 0) return selected.parent.children[index - 1];
-    else if (selected.parent.children.length > 1)
-        return selected.parent.children[index + 1];
+    else if (selected.parent.children.length > 1) return selected.parent.children[index + 1];
     else {
         return selected.parent;
     }
