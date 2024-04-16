@@ -46,25 +46,20 @@ export async function readFile(root: Item): Promise<boolean> {
 
         root.children = [];
         const lines = res.split("\n");
-        const stack = [root];
-        const levels = [-1];
+        const stack = [{ item: root, level: -1 }];
 
         for (const line of lines) {
-            let level = 0;
-            while (line[level] == " ") level++;
+            let lineLevel = 0;
+            while (line[lineLevel] == " ") lineLevel++;
 
-            while (levels[levels.length - 1] >= level) {
-                stack.pop();
-                levels.pop();
-            }
+            while (stack[stack.length - 1].level >= lineLevel) stack.pop();
 
-            const parent = stack[stack.length - 1];
+            const { item: parent } = stack[stack.length - 1];
             const trimmed = line.trim();
 
             if (trimmed.length != 0) {
                 const item = node(trimmed);
-                stack.push(item);
-                levels.push(level);
+                stack.push({ item, level: lineLevel });
 
                 parent.isOpen = true;
                 pushChild(parent, item);
