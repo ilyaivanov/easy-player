@@ -42,7 +42,7 @@ export function moveItem(item: Item, newParent: Item, index: number) {
     insertItemToDom(item);
 
     updateItem(newParent);
-    updateSelection(undefined, item);
+    selectItem(item);
 }
 
 export function closeItem(item: Item) {

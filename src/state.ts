@@ -15,3 +15,5 @@ export const state: State = {
     app: undefined as unknown as HTMLElement,
     isEditingNewlyCreated: false,
 };
+
+(document as any).state = state;
