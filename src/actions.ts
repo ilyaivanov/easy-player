@@ -1,31 +1,6 @@
 import { moveItem, selectItem, showNewRoot } from "./index";
-import {
-    Item,
-    createEmptyItem,
-    getItemAbove,
-    getItemBelow,
-    isRoot,
-    node,
-    removeItemFromTree,
-    getItemToSelectAfterRemoval,
-    insertItemAfter,
-    insertItemBefore,
-    insertItemAsFirstChild,
-    getItemIndex,
-    insertItemAt,
-} from "./tree";
-
-import {
-    closeItemDom,
-    insertItemToDom,
-    openItemDom,
-    removeItemFromDom,
-    renderApp,
-    startEdit,
-    stopEdit,
-    updateItem,
-    updateSelection,
-} from "./views";
+import { Item, isRoot, removeItemFromTree, getItemToSelectAfterRemoval, getItemIndex, insertItemAt } from "./tree";
+import { insertItemToDom, removeItemFromDom, updateItem } from "./views";
 
 type Change =
     | { type: "rename"; oldName: string; newName: string; item: Item }
