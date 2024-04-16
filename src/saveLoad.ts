@@ -1,4 +1,4 @@
-import { Item, node } from "./tree";
+import { Item, insertItemAsLastChild, node } from "./tree";
 
 const types: FilePickerAcceptType[] = [{ description: "Text files", accept: { "txt/*": [".txt"] } }];
 export async function saveFile(root: Item) {
@@ -27,12 +27,10 @@ export async function saveFile(root: Item) {
 
         await writableStream.write(res);
         await writableStream.close();
-    } catch (e) {}
-}
-
-function pushChild(parent: Item, child: Item) {
-    parent.children.push(child);
-    child.parent = parent;
+    } catch (e) {
+        if (e instanceof DOMException && e.name == "AbortError") return false;
+        else throw e;
+    }
 }
 
 export async function readFile(root: Item): Promise<boolean> {
@@ -62,12 +60,13 @@ export async function readFile(root: Item): Promise<boolean> {
                 stack.push({ item, level: lineLevel });
 
                 parent.isOpen = true;
-                pushChild(parent, item);
+                insertItemAsLastChild(parent, item);
             }
         }
 
         return true;
-    } catch (e) {
-        return false;
+    } catch (e: any) {
+        if (e instanceof DOMException && e.name == "AbortError") return false;
+        else throw e;
     }
 }

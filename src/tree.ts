@@ -86,7 +86,7 @@ export function insertItemAsFirstChild(itemParent: Item, itemToInsert: Item) {
     itemToInsert.parent = itemParent;
 }
 export function insertItemAsLastChild(itemParent: Item, itemToInsert: Item) {
-    itemParent.children.splice(itemParent.children.length, 0, itemToInsert);
+    itemParent.children.push(itemToInsert);
     itemToInsert.parent = itemParent;
 }
 export function insertItemAt(parent: Item, child: Item, index: number) {
