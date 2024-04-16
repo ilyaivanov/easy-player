@@ -17,6 +17,17 @@ import {
 export function selectItem(item: Item | undefined) {
     if (!item) return;
 
+    const parents = [];
+    let parent = item.parent;
+    while (!isRoot(parent)) {
+        parents.push(parent);
+        parent = parent.parent;
+    }
+
+    for (const p of parents.reverse()) {
+        if (!p.isOpen) openItem(p);
+    }
+
     updateSelection(state.selected, item);
     state.selected = item;
 }

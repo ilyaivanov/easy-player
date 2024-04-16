@@ -46,7 +46,7 @@ function pushNewChange(change: Change) {
 
 // prettier-ignore
 function performChange(change: Change) {
-    if (change.type == "move")        moveItem(change.item, change.newParent, change.newIndex);
+    if      (change.type == "move")   moveItem(change.item, change.newParent, change.newIndex);
     else if (change.type == "rename") updateTitle(change.item, change.newName);
     else if (change.type == "remove") removeItem(change.item);
     else if (change.type == "loaded") renderApp(change.newRoot, change.newSelected);
@@ -56,7 +56,7 @@ function performChange(change: Change) {
 
 // prettier-ignore
 function revertChange(change: Change) {
-    if (change.type == "move")        moveItem(change.item, change.oldParent, change.oldIndex);
+    if      (change.type == "move")   moveItem(change.item, change.oldParent, change.oldIndex);
     else if (change.type == "rename") updateTitle(change.item, change.oldName);
     else if (change.type == "remove") addItemAt(change.item, change.item.parent, change.position);
     else if (change.type == "loaded") renderApp(change.oldRoot, change.oldSelected);
