@@ -1,8 +1,10 @@
 import { addItemAt, moveItem, removeItem, renderApp, updateTitle } from "./actions";
+import { serializeState } from "./saveLoad";
 import { Item } from "./tree";
 
 // dispatch and revert changes
 
+// prettier-ignore
 type Change =
     | { type: "rename"; oldName: string; newName: string; item: Item }
     | { type: "remove"; position: number; item: Item }
@@ -52,6 +54,11 @@ function performChange(change: Change) {
     else if (change.type == "loaded") renderApp(change.newRoot, change.newSelected);
     else if (change.type == "add")    addItemAt(change.item, change.parent, change.position);
     else                              assertNever(change);
+
+    
+    //TODO: need to throttle this by a lot
+    console.log("Saved");
+    localStorage.setItem("app-state", serializeState());
 }
 
 // prettier-ignore
@@ -62,6 +69,12 @@ function revertChange(change: Change) {
     else if (change.type == "loaded") renderApp(change.oldRoot, change.oldSelected);
     else if (change.type == "add")    removeItem(change.item);
     else                              assertNever(change);
+
+
+    
+    //TODO: need to throttle this by a lot
+    console.log("Saved");
+    localStorage.setItem("app-state", serializeState());
 }
 
 function assertNever(arg: never) {}

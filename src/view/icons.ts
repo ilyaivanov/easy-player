@@ -28,3 +28,5 @@ const pausePath = "M128 64H0V448H128V64zm192 0H192V448H320V64z";
 
 const pauseSvg = svgWithPath("play-icon", "0 0 320 512", pausePath);
 export const pauseIcon = () => pauseSvg.cloneNode(true) as HTMLElement;
+
+// ▲›✓⏸

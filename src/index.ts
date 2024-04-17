@@ -21,7 +21,7 @@ import {
     togglePausePlay,
 } from "./actions";
 import { addChange, redoLastChange, undoLastChange } from "./undo";
-import { readFile, saveFile } from "./saveLoad";
+import { parseState, readFile, saveFile } from "./saveLoad";
 import { div } from "./view/html";
 import { PlayerProgressState } from "./youtubePlayer";
 import { updateProgressTime } from "./view/footer";
@@ -128,7 +128,7 @@ document.addEventListener("keydown", async (e) => {
     } else if (e.code == "KeyD") {
         addChange({ type: "remove", item: state.selected, position: getItemIndex(state.selected) });
     } else if (e.code == "KeyS" && e.ctrlKey) {
-        saveFile(state.root);
+        saveFile();
         e.preventDefault();
     } else if (e.code == "KeyE" && e.ctrlKey) {
         e.preventDefault();
@@ -188,31 +188,15 @@ document.addEventListener("video-progress", (e) =>
 
 document.addEventListener("video-ended", playNextItem);
 
-const initialRoot = node("Root", [
-    node("Music", [
-        node("Electro"),
-        node("Piano"),
-        node("Ambient", [
-            node("Carbon Based Lifeforms", [
-                video("1998 - The Path", "BU2vTxn7nJw"),
-                video("2003 - Hydroponic Garden", "5AAbrmLOV8k"),
-                video("2006 - World Of Sleepers", "KQE29az48gM"),
-                video("2010 - Interloper", "-9pgIVcB3rk&"),
-            ]),
-            node("Sync24"),
-            node("James Murray"),
-        ]),
-    ]),
-    node("Software Development"),
-    node("Soundtracks", [
-        video("Fallout 2 Soundtrack - Traders Life", "Rl59KOraG3c"),
-        video("Fallout 2 Soundtrack - Moribund World", "6Aq71Py77r0"),
-    ]),
-    node("Channels"),
-    node("Four"),
-]);
-
 state.app = div({ className: "app" });
 document.body.appendChild(state.app);
 
-renderApp(initialRoot, initialRoot.children[0]);
+const savedState = localStorage.getItem("app-state");
+
+if (savedState) {
+    let root: Item = parseState(savedState);
+    renderApp(root, root.children[0]);
+} else {
+    const root = node("Root", [node("One"), node("Two")]);
+    renderApp(root, root.children[0]);
+}
