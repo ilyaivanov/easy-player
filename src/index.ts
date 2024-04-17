@@ -1,4 +1,13 @@
-import { Item, getItemAbove, getItemBelow, isRoot, getItemIndex, node } from "./tree";
+import {
+    Item,
+    getItemAbove,
+    getItemBelow,
+    isRoot,
+    getItemIndex,
+    node,
+    getNextSibling,
+    getPrevSibling,
+} from "./tree";
 import { emptyText, getItemTitle, startEdit, stopEdit } from "./view/views";
 import { state } from "./state";
 import {
@@ -102,18 +111,25 @@ document.addEventListener("keydown", async (e) => {
 
     if (e.code == "KeyH") {
         if (e.altKey) moveSelectedLeft();
+        else if (e.ctrlKey && !isRoot(selected.parent)) selectItem(selected.parent);
         else if (selected.isOpen) closeItem(selected);
         else if (selected.parent && !isRoot(selected.parent)) selectItem(selected.parent);
+        e.preventDefault();
     } else if (e.code == "KeyJ") {
         if (e.altKey) moveSelectedDown();
+        else if (e.ctrlKey) selectItem(getNextSibling(selected));
         else selectItem(getItemBelow(selected));
+        e.preventDefault();
     } else if (e.code == "KeyK") {
         if (e.altKey) moveSelectedUp();
+        else if (e.ctrlKey) selectItem(getPrevSibling(selected));
         else selectItem(getItemAbove(selected));
+        e.preventDefault();
     } else if (e.code == "KeyL") {
         if (e.altKey) moveSelectedRight();
         else if (selected.isOpen && selected.children.length > 0) selectItem(selected.children[0]);
         else if (!selected.isOpen && selected.children.length > 0) openItem(selected);
+        e.preventDefault();
     } else if (e.code == "KeyU") {
         if (e.shiftKey) redoLastChange();
         else undoLastChange();

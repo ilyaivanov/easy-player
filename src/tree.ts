@@ -47,6 +47,16 @@ export function getItemAbove(item: Item): Item | undefined {
     }
 }
 
+export function getNextSibling(item: Item) {
+    const index = item.parent.children.indexOf(item);
+    if (index < item.parent.children.length - 1) return item.parent.children[index + 1];
+}
+
+export function getPrevSibling(item: Item) {
+    const index = item.parent.children.indexOf(item);
+    if (index > 0) return item.parent.children[index - 1];
+}
+
 export function getItemBelow(item: Item): Item | undefined {
     if (item.isOpen) return item.children[0];
     else {
