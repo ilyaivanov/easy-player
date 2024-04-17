@@ -1,0 +1,32 @@
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background-color: rgb(37, 8, 37);
+    /* border-top: 1px solid rgb(50, 12, 50); */
+
+    display: flex;
+}
+
+.footer > img {
+    height: 100%;
+    width: 89px;
+    object-fit: cover;
+}
+
+.footer .text-container {
+    padding: 3px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.mini-player {
+    position: fixed;
+    right: 15px;
+    bottom: 65px;
+    width: 400px;
+    height: 150px;
+}

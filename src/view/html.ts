@@ -1,20 +1,23 @@
-type Props = {
+type Props<T> = {
+    id?: string;
     className?: string;
     classMap?: { [key: string]: boolean };
     children?: (DocumentFragment | HTMLElement | string | undefined | false)[];
-    ref?: (elem: HTMLElement) => void;
+    ref?: (elem: T) => void;
     onClick?: (this: HTMLElement, mouse: MouseEvent) => void;
-    onInput?: (
-        this: HTMLElement,
-        ev: Event & { currentTarget: HTMLElement }
-    ) => void;
+    onInput?: (this: HTMLElement, ev: Event & { currentTarget: HTMLElement }) => void;
 };
 
-export const div = (props: Props) =>
-    assignHtmlElementProps(document.createElement("div"), props);
+export const div = (props: Props<HTMLDivElement>) => assignHtmlElementProps(document.createElement("div"), props);
 
-export const span = (props: Props) =>
-    assignHtmlElementProps(document.createElement("span"), props);
+export const span = (props: Props<HTMLSpanElement>) => assignHtmlElementProps(document.createElement("span"), props);
+
+export const img = (props: Props<HTMLImageElement> & { src?: string }) => {
+    const res = assignHtmlElementProps(document.createElement("img"), props);
+
+    if (props.src) res.src = props.src;
+    return res;
+};
 
 export const fragment = (...children: HTMLElement[]) => {
     const res = document.createDocumentFragment();
@@ -25,10 +28,9 @@ export const fragment = (...children: HTMLElement[]) => {
     return res as unknown as HTMLElement;
 };
 
-function assignHtmlElementProps<T extends HTMLElement>(
-    elem: T,
-    props: Props
-): T {
+function assignHtmlElementProps<T extends HTMLElement>(elem: T, props: Props<T>): T {
+    if (props.id) elem.id = props.id;
+
     if (props.className) elem.className = props.className;
 
     if (props.classMap) {

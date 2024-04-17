@@ -1,10 +1,30 @@
-import { Item, getItemAbove, getItemBelow, isRoot, getItemIndex, node, createEmptyItem } from "./tree";
+import {
+    Item,
+    getItemAbove,
+    getItemBelow,
+    isRoot,
+    getItemIndex,
+    node,
+    createEmptyItem,
+    video,
+} from "./tree";
 import { emptyText, getItemTitle, startEdit, stopEdit } from "./view/views";
 import { state } from "./state";
-import { closeItem, openItem, renderApp, selectItem } from "./actions";
+import {
+    closeItem,
+    openItem,
+    playItem,
+    playNextItem,
+    playPrevItem,
+    renderApp,
+    selectItem,
+    togglePausePlay,
+} from "./actions";
 import { addChange, redoLastChange, undoLastChange } from "./undo";
-import "./entry.css";
 import { readFile, saveFile } from "./saveLoad";
+import { div } from "./view/html";
+import { PlayerProgressState } from "./youtubePlayer";
+import { updateProgressTime } from "./view/footer";
 
 // Uncommend to enable E2E tests (currently very minimal)
 // import "./tests";
@@ -148,7 +168,12 @@ document.addEventListener("keydown", async (e) => {
         emptyText(selected);
         startEditSelectedItem();
         e.preventDefault();
-    }
+    } else if (e.code == "Space") {
+        if (state.selected.videoId) playItem(state.selected);
+        e.preventDefault();
+    } else if (e.code == "KeyZ") playPrevItem();
+    else if (e.code == "KeyC") playNextItem();
+    else if (e.code == "KeyX") togglePausePlay();
 });
 
 document.addEventListener("toggle-item", (e) => {
@@ -157,18 +182,37 @@ document.addEventListener("toggle-item", (e) => {
     else openItem(item);
 });
 
+document.addEventListener("video-progress", (e) =>
+    updateProgressTime((e as CustomEvent).detail as PlayerProgressState)
+);
+
+document.addEventListener("video-ended", playNextItem);
+
 const initialRoot = node("Root", [
     node("Music", [
         node("Electro"),
         node("Piano"),
-        node("Ambient", [node("Carbon Based Lifeforms"), node("Sync24"), node("James Murray")]),
+        node("Ambient", [
+            node("Carbon Based Lifeforms", [
+                video("1998 - The Path", "BU2vTxn7nJw"),
+                video("2003 - Hydroponic Garden", "5AAbrmLOV8k"),
+                video("2006 - World Of Sleepers", "KQE29az48gM"),
+                video("2010 - Interloper", "-9pgIVcB3rk&"),
+            ]),
+            node("Sync24"),
+            node("James Murray"),
+        ]),
     ]),
     node("Software Development"),
+    node("Soundtracks", [
+        video("Fallout 2 Soundtrack - Traders Life", "Rl59KOraG3c"),
+        video("Fallout 2 Soundtrack - Moribund World", "6Aq71Py77r0"),
+    ]),
     node("Channels"),
     node("Four"),
 ]);
 
-state.app = document.createElement("div");
+state.app = div({ className: "app" });
 document.body.appendChild(state.app);
 
 renderApp(initialRoot, initialRoot.children[0]);

@@ -1,14 +1,25 @@
 import { state } from "./state";
-import { Item, isRoot, removeItemFromTree, getItemToSelectAfterRemoval, getItemIndex, insertItemAt } from "./tree";
+import {
+    Item,
+    isRoot,
+    removeItemFromTree,
+    getItemToSelectAfterRemoval,
+    insertItemAt,
+    getItemIndex,
+} from "./tree";
+import { updateItemPlaying } from "./view/footer";
 import {
     insertChildren,
     insertItemToDom,
+    itemStartedPlaying,
+    itemStoppedPlaying,
     removeChildren,
     removeItemFromDom,
     renderList,
     updateItem,
     updateSelection,
 } from "./view/views";
+import { pause, play, resume } from "./youtubePlayer";
 
 //
 // the main idea of this file is to sync tree and dom
@@ -84,6 +95,45 @@ export function addItemAt(item: Item, parent: Item, position: number) {
     updateItem(item.parent);
     updateItem(item);
     selectItem(item);
+}
+
+export function playItem(item: Item) {
+    if (state.itemPlayed != item) {
+        if (state.itemPlayed) itemStoppedPlaying(state.itemPlayed);
+
+        state.itemPlayed = item;
+
+        if (item.videoId) play(item.videoId);
+        state.isPlaying = true;
+        itemStartedPlaying(item);
+        updateItemPlaying(item);
+    }
+}
+
+export function playNextItem() {
+    if (state.itemPlayed) {
+        const index = getItemIndex(state.itemPlayed);
+        if (index < state.itemPlayed.parent.children.length - 1)
+            playItem(state.itemPlayed.parent.children[index + 1]);
+    }
+}
+export function playPrevItem() {
+    if (state.itemPlayed) {
+        const index = getItemIndex(state.itemPlayed);
+        if (index > 0) playItem(state.itemPlayed.parent.children[index - 1]);
+    }
+}
+export function togglePausePlay() {
+    if (!state.itemPlayed) return;
+    if (state.isPlaying) {
+        state.isPlaying = false;
+        pause();
+        itemStoppedPlaying(state.itemPlayed);
+    } else {
+        state.isPlaying = true;
+        resume();
+        itemStartedPlaying(state.itemPlayed);
+    }
 }
 
 export function renderApp(root: Item, selected: Item) {

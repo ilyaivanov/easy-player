@@ -1,9 +1,10 @@
 export type Item = {
     title: string;
     children: Item[];
-    type: "node";
+    type: "node" | "video";
     isOpen: boolean;
     parent: Item;
+    videoId?: string;
 };
 
 export function node(title: string, childs?: Item[]): Item {
@@ -18,6 +19,13 @@ export function node(title: string, childs?: Item[]): Item {
     item.parent = item;
     children.forEach((c) => (c.parent = item));
     return item;
+}
+
+export function video(title: string, id: string): Item {
+    let i = node(title);
+    i.type = "video";
+    i.videoId = id;
+    return i;
 }
 
 export function getItemAbove(item: Item): Item | undefined {

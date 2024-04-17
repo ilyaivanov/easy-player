@@ -1,13 +1,17 @@
-import { div, insertAfter, span } from "./html";
-import { chevronIcon } from "./icons";
+import { div, fragment, img, insertAfter, span } from "./html";
+import { chevronIcon, pauseIcon, playIcon } from "./icons";
 import { Item, getItemIndex, isRoot } from "../tree";
+
+import "./entry.css";
+import "./footer.css";
+import { renderFooter } from "./footer";
+import { play } from "../youtubePlayer";
+import { state } from "../state";
 
 type ItemViews = {
     children: HTMLElement;
     container: HTMLElement;
     item: HTMLElement;
-    square: HTMLElement;
-    chevron: HTMLElement;
     text: HTMLElement;
 };
 
@@ -86,6 +90,21 @@ function onToggle(item: Item) {
     document.dispatchEvent(ev);
 }
 
+function setIsItemPlaying(item: Item, state: "playing" | "stopped") {
+    const itemElem = views.get(item)?.item;
+    if (!itemElem) return;
+
+    if (state == "playing") itemElem.replaceChild(pauseIcon(), itemElem.childNodes[1]);
+    else itemElem.replaceChild(renderIcon(item), itemElem.childNodes[1]);
+}
+
+export const itemStoppedPlaying = (item: Item) => setIsItemPlaying(item, "stopped");
+export const itemStartedPlaying = (item: Item) => setIsItemPlaying(item, "playing");
+
+function renderIcon(item: Item) {
+    return item.type == "video" ? playIcon() : div({ className: "square" });
+}
+
 function renderItem(item: Item): HTMLElement {
     //TODO: ugly, but I need to prepopulate empty object
     const view: ItemViews = {} as any;
@@ -98,15 +117,11 @@ function renderItem(item: Item): HTMLElement {
                 ref: (ref) => (view.item = ref),
                 children: [
                     div({
-                        ref: (ref) => (view.chevron = ref),
                         className: "chevron-container",
                         children: [chevronIcon()],
                         onClick: () => onToggle(item),
                     }),
-                    div({
-                        className: "square",
-                        ref: (ref) => (view.square = ref),
-                    }),
+                    renderIcon(item),
 
                     span({
                         className: "item-text",
@@ -138,8 +153,11 @@ const renderChildren = (item: Item) =>
 
 export const renderList = (root: Item) => {
     views.set(root, {} as any);
-    return div({
-        className: "list",
-        children: [renderChildren(root)],
-    });
+    return fragment(
+        div({
+            className: "list",
+            children: [renderChildren(root)],
+        }),
+        renderFooter()
+    );
 };
