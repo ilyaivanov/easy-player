@@ -29,4 +29,5 @@
     bottom: 65px;
     width: 400px;
     height: 150px;
+    pointer-events: none;
 }

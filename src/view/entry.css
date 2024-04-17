@@ -26,7 +26,6 @@ body::-webkit-scrollbar-thumb:hover {
 .item {
     padding: 2px 4px;
     display: flex;
-    align-items: center;
 }
 
 .item.selected {
@@ -109,7 +108,7 @@ body::-webkit-scrollbar-thumb:hover {
     margin-right: 6px;
 
     /* TODO: hand-piced to please my damn eye (the right one) */
-    margin-top: 2px;
+    margin-top: 6px;
     vertical-align: baseline;
 
     width: 7px;
