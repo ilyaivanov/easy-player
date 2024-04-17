@@ -3,6 +3,7 @@ const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = (env, argv) => {
     const isProd = argv.mode === "production";
@@ -40,6 +41,12 @@ module.exports = (env, argv) => {
             extensions: [".tsx", ".ts", ".js"],
         },
         plugins: [
+            new CopyPlugin({
+                patterns: [
+                    { from: "public/manifest.json", to: "." },
+                    { from: "public/favicon.svg", to: "." },
+                ],
+            }),
             new HtmlWebpackPlugin({
                 template: "public/index.html",
             }),
