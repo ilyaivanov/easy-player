@@ -24,7 +24,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .item {
-    padding: 3px 4px;
+    padding: 2px 4px;
     display: flex;
     align-items: center;
 }
