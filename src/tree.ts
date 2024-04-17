@@ -2,9 +2,10 @@ export type Item = {
     title: string;
     children: Item[];
     type: "node" | "video";
-    isOpen: boolean;
     parent: Item;
     videoId?: string;
+    isOpen: boolean;
+    isDone: boolean;
 };
 
 export function node(title: string, childs?: Item[]): Item {
@@ -15,6 +16,7 @@ export function node(title: string, childs?: Item[]): Item {
         type: "node",
         isOpen: children.length > 0,
         parent: undefined as unknown as Item,
+        isDone: false,
     };
     item.parent = item;
     children.forEach((c) => (c.parent = item));
@@ -53,9 +55,14 @@ export function getItemBelow(item: Item): Item | undefined {
         if (parent && itemIndex < parent.children.length - 1) {
             return getChildAt(parent, itemIndex + 1);
         } else {
-            while (!isRoot(parent) && getItemIndex(parent) == parent.parent.children.length - 1 && parent.isOpen)
+            while (
+                !isRoot(parent) &&
+                getItemIndex(parent) == parent.parent.children.length - 1 &&
+                parent.isOpen
+            )
                 parent = parent.parent;
-            if (parent && !isRoot(parent)) return getChildAt(parent.parent, getItemIndex(parent) + 1);
+            if (parent && !isRoot(parent))
+                return getChildAt(parent.parent, getItemIndex(parent) + 1);
         }
     }
 }
@@ -103,18 +110,8 @@ export function insertItemAt(parent: Item, child: Item, index: number) {
     child.parent = parent;
 }
 
-export function createEmptyItem(): Item {
-    return {
-        title: "",
-        children: [],
-        isOpen: false,
-        parent: undefined as unknown as Item,
-        type: "node",
-    };
-}
-
 export function createEmptyRoot(): Item {
-    const item = createEmptyItem();
+    const item = node("");
     item.parent = item;
     return item;
 }

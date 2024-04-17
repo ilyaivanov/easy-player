@@ -28,11 +28,36 @@ body::-webkit-scrollbar-thumb:hover {
     display: flex;
 }
 
-.item.selected {
-    color: greenyellow;
-}
 .item.selected .square {
     background-color: greenyellow;
+}
+
+.item.done .square::before {
+    content: "✓";
+    font-size: 12px;
+    color: white;
+
+    display: block;
+    animation: animate-chevron 200ms ease-in-out forwards;
+}
+@keyframes animate-chevron {
+    0% {
+        translate: -1px -14px;
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        translate: -1px -7px;
+    }
+}
+
+.item.done,
+.item.done + .children-container {
+    color: rgb(159, 159, 159);
+}
+
+.item.selected {
+    color: greenyellow;
 }
 
 .item.selected .play-icon {

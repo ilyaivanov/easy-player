@@ -1,13 +1,4 @@
-import {
-    Item,
-    getItemAbove,
-    getItemBelow,
-    isRoot,
-    getItemIndex,
-    node,
-    createEmptyItem,
-    video,
-} from "./tree";
+import { Item, getItemAbove, getItemBelow, isRoot, getItemIndex, node } from "./tree";
 import { emptyText, getItemTitle, startEdit, stopEdit } from "./view/views";
 import { state } from "./state";
 import {
@@ -18,6 +9,7 @@ import {
     playPrevItem,
     renderApp,
     selectItem,
+    toggleIsDone,
     togglePausePlay,
 } from "./actions";
 import { addChange, redoLastChange, undoLastChange } from "./undo";
@@ -157,7 +149,7 @@ document.addEventListener("keydown", async (e) => {
             position = currentIndex + 1;
         }
 
-        addChange({ type: "add", item: createEmptyItem(), parent, position });
+        addChange({ type: "add", item: node(""), parent, position });
         state.isEditingNewlyCreated = true;
         startEditSelectedItem();
         e.preventDefault();
@@ -174,6 +166,7 @@ document.addEventListener("keydown", async (e) => {
     } else if (e.code == "KeyZ") playPrevItem();
     else if (e.code == "KeyC") playNextItem();
     else if (e.code == "KeyX") togglePausePlay();
+    else if (e.code == "Enter" && e.ctrlKey) addChange({ type: "toggle-done", item: selected });
 });
 
 document.addEventListener("toggle-item", (e) => {

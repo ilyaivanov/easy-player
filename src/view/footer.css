@@ -8,6 +8,14 @@
     /* border-top: 1px solid rgb(50, 12, 50); */
 
     display: flex;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms;
+}
+
+.footer.visible {
+    pointer-events: all;
+    opacity: 1;
 }
 
 .footer > img {

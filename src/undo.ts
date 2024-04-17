@@ -1,4 +1,4 @@
-import { addItemAt, moveItem, removeItem, renderApp, updateTitle } from "./actions";
+import { addItemAt, moveItem, removeItem, renderApp, toggleIsDone, updateTitle } from "./actions";
 import { serializeState } from "./saveLoad";
 import { Item } from "./tree";
 
@@ -7,6 +7,7 @@ import { Item } from "./tree";
 // prettier-ignore
 type Change =
     | { type: "rename"; oldName: string; newName: string; item: Item }
+    | { type: "toggle-done"; item: Item }
     | { type: "remove"; position: number; item: Item }
     | { type: "add"; position: number; parent: Item; item: Item }
     | { type: "loaded"; oldRoot: Item; oldSelected: Item; newRoot: Item; newSelected: Item }
@@ -48,11 +49,12 @@ function pushNewChange(change: Change) {
 
 // prettier-ignore
 function performChange(change: Change) {
-    if      (change.type == "move")   moveItem(change.item, change.newParent, change.newIndex);
-    else if (change.type == "rename") updateTitle(change.item, change.newName);
-    else if (change.type == "remove") removeItem(change.item);
-    else if (change.type == "loaded") renderApp(change.newRoot, change.newSelected);
-    else if (change.type == "add")    addItemAt(change.item, change.parent, change.position);
+    if      (change.type == "move")        moveItem(change.item, change.newParent, change.newIndex);
+    else if (change.type == "rename")      updateTitle(change.item, change.newName);
+    else if (change.type == "remove")      removeItem(change.item);
+    else if (change.type == "loaded")      renderApp(change.newRoot, change.newSelected);
+    else if (change.type == "add")         addItemAt(change.item, change.parent, change.position);
+    else if (change.type == "toggle-done") toggleIsDone(change.item);
     else                              assertNever(change);
 
     
@@ -63,11 +65,12 @@ function performChange(change: Change) {
 
 // prettier-ignore
 function revertChange(change: Change) {
-    if      (change.type == "move")   moveItem(change.item, change.oldParent, change.oldIndex);
-    else if (change.type == "rename") updateTitle(change.item, change.oldName);
-    else if (change.type == "remove") addItemAt(change.item, change.item.parent, change.position);
-    else if (change.type == "loaded") renderApp(change.oldRoot, change.oldSelected);
-    else if (change.type == "add")    removeItem(change.item);
+    if      (change.type == "move")        moveItem(change.item, change.oldParent, change.oldIndex);
+    else if (change.type == "rename")      updateTitle(change.item, change.oldName);
+    else if (change.type == "remove")      addItemAt(change.item, change.item.parent, change.position);
+    else if (change.type == "loaded")      renderApp(change.oldRoot, change.oldSelected);
+    else if (change.type == "add")         removeItem(change.item);
+    else if (change.type == "toggle-done") toggleIsDone(change.item);
     else                              assertNever(change);
 
 

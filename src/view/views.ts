@@ -56,6 +56,9 @@ export function updateItem(item: Item) {
     const itemElem = views.get(item);
     if (!itemElem || isRoot(item)) return;
 
+    if (item.isDone) itemElem.item.classList.add("done");
+    else itemElem.item.classList.remove("done");
+
     itemElem.text.innerText = item.title;
     if (item.children.length == 0) itemElem.item.classList.add("empty");
     else {

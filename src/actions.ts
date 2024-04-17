@@ -136,6 +136,12 @@ export function togglePausePlay() {
     }
 }
 
+export function toggleIsDone(item: Item) {
+    item.isDone = !item.isDone;
+    updateItem(item);
+    selectItem(item);
+}
+
 export function renderApp(root: Item, selected: Item) {
     state.app.replaceChildren();
     state.root = root;

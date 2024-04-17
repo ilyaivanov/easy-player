@@ -10,14 +10,14 @@ import { div, img, span } from "./html";
 let title: HTMLElement;
 let image: HTMLImageElement;
 let time: HTMLElement;
+let footer: HTMLElement;
 
 export function renderFooter() {
     return div({
+        ref: (ref) => (footer = ref),
         className: "footer",
         children: [
-            img({
-                ref: (ref) => (image = ref),
-            }),
+            img({ ref: (ref) => (image = ref) }),
             div({
                 className: "text-container",
                 children: [
@@ -31,6 +31,9 @@ export function renderFooter() {
 }
 
 export function updateItemPlaying(item: Item) {
+    if (!image.src) {
+        footer.classList.add("visible");
+    }
     title.innerText = item.title;
     image.src = `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`;
 }
