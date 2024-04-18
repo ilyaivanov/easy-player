@@ -1,9 +1,10 @@
-import { div, img, span } from "./html";
+import { div, span } from "./html";
 import { chevronIcon } from "./icons";
 
 import "./header.css";
 import { state } from "../state";
-import { isRoot } from "../tree";
+import { Item, isRoot } from "../tree";
+import { dispatchCustomEvent } from "./events";
 
 let header: HTMLElement;
 
@@ -12,6 +13,14 @@ export function renderHeader() {
         className: "header",
         ref: (ref) => (header = ref),
         children: [],
+    });
+}
+
+function itemPart(item: Item) {
+    return span({
+        className: "part",
+        children: [item.title],
+        onClick: () => dispatchCustomEvent("item-focus", item),
     });
 }
 
@@ -27,10 +36,10 @@ export function updateFocus() {
 
     const newChildren: HTMLElement[] = path
         .map((p) => {
-            if (p == state.focused) return [span({ className: "part", children: [p.title] })];
+            if (p == state.focused) return [itemPart(p)];
             else
                 return [
-                    span({ className: "part", children: [p.title] }),
+                    itemPart(p),
                     div({ className: "header-chevron", children: [chevronIcon()] }),
                 ];
         })

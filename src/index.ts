@@ -20,14 +20,13 @@ import {
     playPrevItem,
     renderApp,
     selectItem,
-    toggleIsDone,
     togglePausePlay,
 } from "./actions";
 import { addChange, redoLastChange, undoLastChange } from "./undo";
 import { parseState, readFile, saveFile } from "./saveLoad";
 import { div } from "./view/html";
-import { PlayerProgressState } from "./youtubePlayer";
 import { updateProgressTime } from "./view/footer";
+import { addCustomEventListener } from "./view/events";
 
 // Uncommend to enable E2E tests (currently very minimal)
 // import "./tests";
@@ -195,20 +194,15 @@ document.addEventListener("keydown", async (e) => {
     else if (e.code == "KeyF") focusOn(state.selected);
 });
 
-const addCustomEventListener = (name: string, cb: (ev: CustomEvent) => void) =>
-    document.addEventListener(name, cb as any);
-
 addCustomEventListener("toggle-item", (e) => {
     const item = e.detail as Item;
     if (item.isOpen) closeItem(item);
     else openItem(item);
 });
 
-addCustomEventListener("video-progress", (e) =>
-    updateProgressTime(e.detail as PlayerProgressState)
-);
-
+addCustomEventListener("video-progress", updateProgressTime);
 addCustomEventListener("video-ended", playNextItem);
+addCustomEventListener("item-focus", (e) => focusOn(e.detail));
 
 state.app = div({ className: "app" });
 document.body.appendChild(state.app);

@@ -1,3 +1,5 @@
+import { dispatchCustomEvent, dispatchCustomEventEmpty } from "./view/events";
+
 export const youtubeIframeId = "youtubeIframe";
 
 var player: YoutubePlayer;
@@ -86,7 +88,7 @@ let progressInterval: NodeJS.Timeout | undefined;
 function onPlayerStateChange(event: any) {
     const state: PlayerState = event.data;
     if (state === PlayerState.ENDED) {
-        document.dispatchEvent(new Event("video-ended"));
+        dispatchCustomEventEmpty("video-ended");
     }
 
     if (state === PlayerState.PLAYING) {
@@ -99,8 +101,7 @@ function onPlayerStateChange(event: any) {
     }
 }
 
-const onTick = () =>
-    document.dispatchEvent(new CustomEvent("video-progress", { detail: getPlayerProgressState() }));
+const onTick = () => dispatchCustomEventEmpty("video-progress");
 
 export type PlayerProgressState = {
     duration: number;

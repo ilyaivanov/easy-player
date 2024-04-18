@@ -1,8 +1,8 @@
 import { Item } from "../tree";
 import {
-    PlayerProgressState,
     formatTime,
     formatTimeOmitHour,
+    getPlayerProgressState,
     youtubeIframeId,
 } from "../youtubePlayer";
 import { div, img, span } from "./html";
@@ -38,7 +38,8 @@ export function updateItemPlaying(item: Item) {
     image.src = `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`;
 }
 
-export function updateProgressTime(e: PlayerProgressState) {
+export function updateProgressTime() {
+    const e = getPlayerProgressState();
     const oneHour = 60 * 60;
     const formatter = e.duration >= oneHour ? formatTime : formatTimeOmitHour;
 

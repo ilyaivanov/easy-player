@@ -8,6 +8,7 @@ import { renderFooter } from "./footer";
 import { play } from "../youtubePlayer";
 import { state } from "../state";
 import { renderHeader } from "./header";
+import { dispatchCustomEvent } from "./events";
 
 type ItemViews = {
     children: HTMLElement;
@@ -89,11 +90,6 @@ export function getItemTitle(item: Item) {
     return views.get(item)!.text.innerText;
 }
 
-function onToggle(item: Item) {
-    const ev = new CustomEvent("toggle-item", { detail: item });
-    document.dispatchEvent(ev);
-}
-
 function setIsItemPlaying(item: Item, state: "playing" | "stopped") {
     const itemElem = views.get(item)?.item;
     if (!itemElem) return;
@@ -123,7 +119,7 @@ function renderItem(item: Item): HTMLElement {
                     div({
                         className: "chevron-container",
                         children: [chevronIcon()],
-                        onClick: () => onToggle(item),
+                        onClick: () => dispatchCustomEvent("toggle-item", item),
                     }),
                     renderIcon(item),
 

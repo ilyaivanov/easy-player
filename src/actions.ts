@@ -161,6 +161,7 @@ export function focusOn(item: Item) {
 export function renderApp(root: Item, selected: Item) {
     state.app.replaceChildren();
     state.root = root;
+    state.focused = root;
     state.selected = selected;
 
     state.app.appendChild(renderList(root));
