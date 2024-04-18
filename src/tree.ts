@@ -121,7 +121,7 @@ export function insertItemAt(parent: Item, child: Item, index: number) {
 }
 
 export function createEmptyRoot(): Item {
-    const item = node("");
+    const item = node("Home");
     item.parent = item;
     return item;
 }
@@ -133,4 +133,14 @@ export function getItemToSelectAfterRemoval(selected: Item) {
     else {
         return selected.parent;
     }
+}
+
+export function isSameOrChildOf(parent: Item, child: Item) {
+    let p = child;
+    while (!isRoot(p)) {
+        if (p == parent) return true;
+        p = p.parent;
+    }
+
+    return p == parent;
 }

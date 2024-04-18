@@ -3,6 +3,7 @@ import { Item } from "./tree";
 export type State = {
     root: Item;
     selected: Item;
+    focused: Item;
     itemPlayed: Item | undefined;
     isPlaying: boolean;
     isEditingNewlyCreated: boolean;
@@ -13,6 +14,7 @@ export type State = {
 export const state: State = {
     mode: "Normal",
     root: undefined as unknown as Item,
+    focused: undefined as unknown as Item,
     selected: undefined as unknown as Item,
 
     itemPlayed: undefined as unknown as Item,

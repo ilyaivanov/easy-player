@@ -6,8 +6,10 @@ import {
     getItemToSelectAfterRemoval,
     insertItemAt,
     getItemIndex,
+    isSameOrChildOf,
 } from "./tree";
 import { updateItemPlaying } from "./view/footer";
+import { updateFocus } from "./view/header";
 import {
     insertChildren,
     insertItemToDom,
@@ -28,6 +30,8 @@ import { pause, play, resume } from "./youtubePlayer";
 export function selectItem(item: Item | undefined) {
     if (!item) return;
 
+    if (!isSameOrChildOf(state.focused, item)) return;
+
     const parents = [];
     let parent = item.parent;
     while (!isRoot(parent)) {
@@ -36,7 +40,7 @@ export function selectItem(item: Item | undefined) {
     }
 
     for (const p of parents.reverse()) {
-        if (!p.isOpen) openItem(p);
+        if (!p.isOpen && state.focused != p) openItem(p);
     }
 
     updateSelection(state.selected, item);
@@ -142,6 +146,16 @@ export function toggleIsDone(item: Item) {
     item.isDone = !item.isDone;
     updateItem(item);
     selectItem(item);
+}
+
+export function focusOn(item: Item) {
+    state.focused = item;
+
+    state.app.replaceChildren();
+    state.app.appendChild(renderList(state.focused));
+
+    updateFocus();
+    selectItem(state.selected);
 }
 
 export function renderApp(root: Item, selected: Item) {

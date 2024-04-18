@@ -7,11 +7,13 @@ import {
     node,
     getNextSibling,
     getPrevSibling,
+    isSameOrChildOf,
 } from "./tree";
 import { emptyText, getItemTitle, startEdit, stopEdit } from "./view/views";
 import { state } from "./state";
 import {
     closeItem,
+    focusOn,
     openItem,
     playItem,
     playNextItem,
@@ -33,14 +35,15 @@ import { updateProgressTime } from "./view/footer";
 // gather info to dispatch change or directly call actions
 
 function moveSelected(newParent: Item, newIndex: number) {
-    addChange({
-        type: "move",
-        item: state.selected,
-        oldParent: state.selected.parent,
-        oldIndex: getItemIndex(state.selected),
-        newParent,
-        newIndex,
-    });
+    if (isSameOrChildOf(state.focused, newParent))
+        addChange({
+            type: "move",
+            item: state.selected,
+            oldParent: state.selected.parent,
+            oldIndex: getItemIndex(state.selected),
+            newParent,
+            newIndex,
+        });
 }
 
 function moveSelectedDown() {
@@ -112,12 +115,14 @@ document.addEventListener("keydown", async (e) => {
     if (e.code == "KeyH") {
         if (e.altKey) moveSelectedLeft();
         else if (e.ctrlKey && !isRoot(selected.parent)) selectItem(selected.parent);
-        else if (selected.isOpen) closeItem(selected);
+        else if (selected.isOpen && state.focused != selected) closeItem(selected);
         else if (selected.parent && !isRoot(selected.parent)) selectItem(selected.parent);
         e.preventDefault();
     } else if (e.code == "KeyJ") {
         if (e.altKey) moveSelectedDown();
         else if (e.ctrlKey) selectItem(getNextSibling(selected));
+        else if (state.focused == selected && selected.children.length > 0)
+            selectItem(selected.children[0]);
         else selectItem(getItemBelow(selected));
         e.preventDefault();
     } else if (e.code == "KeyK") {
@@ -128,7 +133,8 @@ document.addEventListener("keydown", async (e) => {
     } else if (e.code == "KeyL") {
         if (e.altKey) moveSelectedRight();
         else if (selected.isOpen && selected.children.length > 0) selectItem(selected.children[0]);
-        else if (!selected.isOpen && selected.children.length > 0) openItem(selected);
+        else if (!selected.isOpen && state.focused != selected && selected.children.length > 0)
+            openItem(selected);
         e.preventDefault();
     } else if (e.code == "KeyU") {
         if (e.shiftKey) redoLastChange();
@@ -165,9 +171,11 @@ document.addEventListener("keydown", async (e) => {
             position = currentIndex + 1;
         }
 
-        addChange({ type: "add", item: node(""), parent, position });
-        state.isEditingNewlyCreated = true;
-        startEditSelectedItem();
+        if (isSameOrChildOf(state.focused, parent)) {
+            addChange({ type: "add", item: node(""), parent, position });
+            state.isEditingNewlyCreated = true;
+            startEditSelectedItem();
+        }
         e.preventDefault();
     } else if (e.code == "KeyI") {
         startEditSelectedItem();
@@ -183,19 +191,24 @@ document.addEventListener("keydown", async (e) => {
     else if (e.code == "KeyC") playNextItem();
     else if (e.code == "KeyX") togglePausePlay();
     else if (e.code == "Enter" && e.ctrlKey) addChange({ type: "toggle-done", item: selected });
+    else if (e.code == "KeyF" && e.shiftKey) focusOn(state.focused.parent);
+    else if (e.code == "KeyF") focusOn(state.selected);
 });
 
-document.addEventListener("toggle-item", (e) => {
-    const item = (e as CustomEvent).detail as Item;
+const addCustomEventListener = (name: string, cb: (ev: CustomEvent) => void) =>
+    document.addEventListener(name, cb as any);
+
+addCustomEventListener("toggle-item", (e) => {
+    const item = e.detail as Item;
     if (item.isOpen) closeItem(item);
     else openItem(item);
 });
 
-document.addEventListener("video-progress", (e) =>
-    updateProgressTime((e as CustomEvent).detail as PlayerProgressState)
+addCustomEventListener("video-progress", (e) =>
+    updateProgressTime(e.detail as PlayerProgressState)
 );
 
-document.addEventListener("video-ended", playNextItem);
+addCustomEventListener("video-ended", playNextItem);
 
 state.app = div({ className: "app" });
 document.body.appendChild(state.app);
@@ -209,3 +222,4 @@ if (savedState) {
     const root = node("Root", [node("One"), node("Two")]);
     renderApp(root, root.children[0]);
 }
+focusOn(state.root);

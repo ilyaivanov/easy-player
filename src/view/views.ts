@@ -7,6 +7,7 @@ import "./footer.css";
 import { renderFooter } from "./footer";
 import { play } from "../youtubePlayer";
 import { state } from "../state";
+import { renderHeader } from "./header";
 
 type ItemViews = {
     children: HTMLElement;
@@ -35,7 +36,7 @@ export function insertItemToDom(item: Item) {
 
 export function updateSelection(prev: Item | undefined, current: Item | undefined) {
     prev && views.get(prev)?.item.classList.remove("selected");
-    current && views.get(current)?.item.classList.add("selected");
+    current && views.get(current)?.item?.classList.add("selected");
 }
 
 export function removeChildren(item: Item) {
@@ -155,11 +156,28 @@ const renderChildren = (item: Item) =>
     });
 
 export const renderList = (root: Item) => {
-    views.set(root, {} as any);
+    const view: ItemViews = {} as any;
+    views.set(root, view);
     return fragment(
+        renderHeader(),
         div({
             className: "list",
-            children: [renderChildren(root)],
+            children: [
+                root != state.root
+                    ? div({
+                          className: "item item-title",
+                          ref: (ref) => (view.item = ref),
+                          children: [
+                              span({
+                                  className: "item-text",
+                                  children: [root.title],
+                                  ref: (ref) => (view.text = ref),
+                              }),
+                          ],
+                      })
+                    : undefined,
+                renderChildren(root),
+            ],
         }),
         renderFooter()
     );

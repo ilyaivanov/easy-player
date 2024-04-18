@@ -20,12 +20,18 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .list {
-    padding-top: 20px;
+    padding-top: 30px;
 }
 
 .item {
     padding: 2px 4px;
     display: flex;
+}
+
+.item-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 25px;
 }
 
 .item.selected .square {

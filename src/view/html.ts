@@ -8,9 +8,11 @@ type Props<T> = {
     onInput?: (this: HTMLElement, ev: Event & { currentTarget: HTMLElement }) => void;
 };
 
-export const div = (props: Props<HTMLDivElement>) => assignHtmlElementProps(document.createElement("div"), props);
+export const div = (props: Props<HTMLDivElement>) =>
+    assignHtmlElementProps(document.createElement("div"), props);
 
-export const span = (props: Props<HTMLSpanElement>) => assignHtmlElementProps(document.createElement("span"), props);
+export const span = (props: Props<HTMLSpanElement>) =>
+    assignHtmlElementProps(document.createElement("span"), props);
 
 export const img = (props: Props<HTMLImageElement> & { src?: string }) => {
     const res = assignHtmlElementProps(document.createElement("img"), props);
@@ -19,10 +21,10 @@ export const img = (props: Props<HTMLImageElement> & { src?: string }) => {
     return res;
 };
 
-export const fragment = (...children: HTMLElement[]) => {
+export const fragment = (...children: (HTMLElement | undefined)[]) => {
     const res = document.createDocumentFragment();
 
-    for (const child of children) res.appendChild(child);
+    for (const child of children) if (child) res.appendChild(child);
 
     //ugly typecast, but I'm adding this as children to nodes, which might be wrong
     return res as unknown as HTMLElement;
