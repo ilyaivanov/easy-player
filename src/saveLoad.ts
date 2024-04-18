@@ -22,6 +22,9 @@ export function serializeState() {
             !item.isOpen && item.children.length > 0 ? "closed" : undefined,
             item.isDone ? "done" : undefined,
             item.videoId ? `yvideo:${item.videoId}` : undefined,
+            item.playlistId ? `yplaylist:${item.playlistId}` : undefined,
+            item.channelId ? `ychannel:${item.channelId}` : undefined,
+            item.image ? `yimage:${item.image}` : undefined,
         ].filter((x) => !!x);
 
         if (flags.length > 0) {
@@ -64,9 +67,17 @@ export function parseState(str: string): Item {
                     if (flag == "closed") item.isOpen = false;
                     if (flag == "done") item.isDone = true;
                     if (flag.startsWith("yvideo:")) {
-                        const videoId = flag.substring(flag.indexOf(":") + 1);
+                        item.videoId = flag.substring(flag.indexOf(":") + 1);
                         item.type = "video";
-                        item.videoId = videoId;
+                    }
+                    if (flag.startsWith("ychannel:")) {
+                        item.channelId = flag.substring(flag.indexOf(":") + 1);
+                    }
+                    if (flag.startsWith("yplaylist:")) {
+                        item.playlistId = flag.substring(flag.indexOf(":") + 1);
+                    }
+                    if (flag.startsWith("yimage:")) {
+                        item.image = flag.substring(flag.indexOf(":") + 1);
                     }
                 }
             } else {

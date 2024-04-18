@@ -102,6 +102,11 @@ export const itemStoppedPlaying = (item: Item) => setIsItemPlaying(item, "stoppe
 export const itemStartedPlaying = (item: Item) => setIsItemPlaying(item, "playing");
 
 function renderIcon(item: Item) {
+    if (item.image) {
+        if (item.channelId) return img({ className: "channel-image", src: item.image });
+        else if (item.playlistId) return img({ className: "playlist-image", src: item.image });
+        else return img({ className: "video-image", src: item.image });
+    }
     return item.type == "video" ? playIcon() : div({ className: "square" });
 }
 

@@ -4,6 +4,10 @@ export type Item = {
     type: "node" | "video";
     parent: Item;
     videoId?: string;
+    playlistId?: string;
+    channelId?: string;
+    image?: string;
+    // videoId?: string;
     isOpen: boolean | undefined;
     isDone: boolean;
 };

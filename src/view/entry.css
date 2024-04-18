@@ -144,6 +144,23 @@ body::-webkit-scrollbar-thumb:hover {
     box-sizing: border-box;
 }
 
+.channel-image,
+.playlist-image,
+.video-image {
+    height: 30px;
+    margin-left: 5px;
+    margin-right: 6px;
+}
+
+.channel-image {
+    border-radius: 30px;
+}
+
+.channel-image,
+.playlist-image {
+    width: 30px;
+}
+
 .play-icon {
     margin-top: 6px;
     min-width: 10px;
