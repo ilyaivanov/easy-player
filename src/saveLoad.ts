@@ -16,7 +16,19 @@ export function serializeState() {
         const currentLevel = levels.pop()!;
 
         for (let i = 0; i < currentLevel * 2; i++) res += " ";
-        res += `${item.title}\n`;
+        res += `${item.title}`;
+
+        const flags = [
+            !item.isOpen && item.children.length > 0 ? "closed" : undefined,
+            item.isDone ? "done" : undefined,
+            item.videoId ? `yvideo:${item.videoId}` : undefined,
+        ].filter((x) => !!x);
+
+        if (flags.length > 0) {
+            res += ` ;;${flags.join(" ")}`;
+        }
+
+        res += "\n";
 
         if (item.children.length > 0) {
             stack.push(...toReverse(item.children));
@@ -41,10 +53,29 @@ export function parseState(str: string): Item {
         const trimmed = line.trim();
 
         if (trimmed.length != 0) {
-            const item = node(trimmed);
+            const flagsSeparator = ";;";
+            const flagsIndex = trimmed.lastIndexOf(flagsSeparator);
+            let item: Item;
+            if (flagsIndex >= 0) {
+                item = node(trimmed.substring(0, flagsIndex));
+                const flags = trimmed.substring(flagsIndex + flagsSeparator.length).split(" ");
+
+                for (const flag of flags) {
+                    if (flag == "closed") item.isOpen = false;
+                    if (flag == "done") item.isDone = true;
+                    if (flag.startsWith("yvideo:")) {
+                        const videoId = flag.substring(flag.indexOf(":") + 1);
+                        item.type = "video";
+                        item.videoId = videoId;
+                    }
+                }
+            } else {
+                item = node(trimmed);
+            }
             stack.push({ item, level: lineLevel });
 
-            parent.isOpen = true;
+            if (typeof parent.isOpen == "undefined") parent.isOpen = true;
+
             insertItemAsLastChild(parent, item);
         }
     }

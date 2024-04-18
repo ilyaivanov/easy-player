@@ -4,7 +4,7 @@ export type Item = {
     type: "node" | "video";
     parent: Item;
     videoId?: string;
-    isOpen: boolean;
+    isOpen: boolean | undefined;
     isDone: boolean;
 };
 
@@ -14,7 +14,7 @@ export function node(title: string, childs?: Item[]): Item {
         title,
         children,
         type: "node",
-        isOpen: children.length > 0,
+        isOpen: undefined,
         parent: undefined as unknown as Item,
         isDone: false,
     };
