@@ -89,8 +89,10 @@ export function removeItem(item: Item) {
 }
 
 export function addItemAt(item: Item, parent: Item, position: number) {
+    const wasParentOpen = parent.isOpen;
     insertItemAt(parent, item, position);
-    insertItemToDom(item);
+    if (wasParentOpen) insertItemToDom(item);
+    else openItem(parent);
 
     updateItem(item.parent);
     updateItem(item);
