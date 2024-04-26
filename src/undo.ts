@@ -57,10 +57,7 @@ function performChange(change: Change) {
     else if (change.type == "toggle-done") toggleIsDone(change.item);
     else                              assertNever(change);
 
-    
-    //TODO: need to throttle this by a lot
-    console.log("Saved");
-    localStorage.setItem("app-state", serializeState());
+    saveToLocalStorage();
 }
 
 // prettier-ignore
@@ -73,8 +70,10 @@ function revertChange(change: Change) {
     else if (change.type == "toggle-done") toggleIsDone(change.item);
     else                              assertNever(change);
 
+    saveToLocalStorage();
+}
 
-    
+export function saveToLocalStorage() {
     //TODO: need to throttle this by a lot
     console.log("Saved");
     localStorage.setItem("app-state", serializeState());

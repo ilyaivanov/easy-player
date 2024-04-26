@@ -22,7 +22,7 @@ import {
     selectItem,
     togglePausePlay,
 } from "./actions";
-import { addChange, redoLastChange, undoLastChange } from "./undo";
+import { addChange, redoLastChange, saveToLocalStorage, undoLastChange } from "./undo";
 import { parseState, readFile, saveFile } from "./saveLoad";
 import { div } from "./view/html";
 import { updateProgressTime } from "./view/footer";
@@ -88,6 +88,7 @@ function stopEditSelectedItem() {
     if (state.isEditingNewlyCreated) {
         state.selected.title = getItemTitle(state.selected);
         state.isEditingNewlyCreated = false;
+        saveToLocalStorage();
     } else {
         addChange({
             type: "rename",
